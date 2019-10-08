@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "930144417947",
+    "firebase_url": "https://dhca-mobile-classroom.firebaseio.com",
+    "project_id": "dhca-mobile-classroom",
+    "storage_bucket": "dhca-mobile-classroom.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:930144417947:android:0e847dd3cd7695f9",
+        "android_client_info": {
+          "package_name": "dhca.mobile.classroom"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "930144417947-s32pjsht8t2r95o00qof9h6llj3rio0j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "dhca.mobile.classroom",
+            "certificate_hash": "8bc4a7b0db878261d1860e3b615a9b86f178ff4e"
+          }
+        },
+        {
+          "client_id": "930144417947-lmllm06hotesqdui2toim79nooq7iehk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvVhHwtdTyVDbv5a1vNH92y2BRqCZfZn8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "930144417947-lmllm06hotesqdui2toim79nooq7iehk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
