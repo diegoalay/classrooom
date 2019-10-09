@@ -35,7 +35,7 @@ class Nav extends StatefulWidget{
   static WidgetPasser popPasser = WidgetPasser();
   
   final Widget body;
-  final String title, section, subtitle, courseId, lessonId;
+  final String title, section, subtitle, courseId, lessonId, courseName;
   final double preferredSize, elevation;
   final bool drawerActive, addBarActive, notificationsActive, owner;
   final Color color, titleColor, actionsColor;
@@ -57,6 +57,7 @@ class Nav extends StatefulWidget{
     this.subtitle: '',
     this.courseId: 'NA',
     this.lessonId: 'NA',
+    this.courseName: 'NA',
     this.preferredSize: 60.0,
     this.acessCode,
     this.addBarModePasser,
@@ -307,7 +308,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
           int day = nowDate.day;
           int month = nowDate.month;
           int year = nowDate.year;
-          DatabaseManager.addLesson(Auth.uid, val, '', day, month, year, widget.acessCode);
+          DatabaseManager.addLesson(Auth.uid, val, '', day, month, year, widget.acessCode, widget.courseName);
           // Map text = {
           //   //TODO: obtener los comentarios de la lección.
           //   'name' : val,
@@ -328,7 +329,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
         });
       }else if(Nav.addBarMode == AddBarMode.LINK_COURSE){
         DatabaseManager.searchInArray('coursesPerUser', Auth.uid,'courses',val).then((valid){
-          if(valid){
+          if(!valid){
             DatabaseManager.addCourseByAccessCode(val,Auth.uid).then((dynamic text){
               if(text == null){  
                 setState(() {
@@ -377,7 +378,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
         print('DESCRIPCION: $val');
         print('CURSO: ${widget.courseId}');
         print('LECCION: ${widget.lessonId}');
-        DatabaseManager.updateLesson(widget.lessonId, val,"name","","");
+        DatabaseManager.updateLesson(widget.lessonId, val,"description","","");
         _addBarController.reverse().then((val){
           _addBarTextfieldController.text = '';
           if(_addBarAlertController.status != AnimationStatus.dismissed){

@@ -29,8 +29,8 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
       print(e);
     }
     if(_contentQR != null){
-      DatabaseManager.searchInArray("coursesPerUser", Auth.uid, "courses", "_contentQR").then((valid){
-        if(valid){
+      DatabaseManager.searchInArray("coursesPerUser", Auth.uid, "courses", _contentQR).then((valid){
+        if(!valid){
           DatabaseManager.addCourseByAccessCode(_contentQR,Auth.uid).then((dynamic text){
             if(text == null){  
               setState(() {

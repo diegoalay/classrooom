@@ -2,23 +2,61 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 
-exports.lessonNotification = functions.firestore.document('lessons/{lessonId}').onCreate(async snapshot => {
-    const ref = snapshot.data();
-    console.log('new lesson: ' + snapshot.id);
-    const querySnapshot = await admin.firestore()
-      .collection('users')
-      .doc(ref.authorId)
-      .collection('tokens')
-      .get();
-    const tokens = querySnapshot.docs.map(snap => snap.id);
-    console.log(tokens);
+exports.answersNotifications = functions.firestore.document('lessons/{lessonId}/questions/{questionId}/answers/{answerId}').onCreate(async snapshot => {
+  const ref = snapshot.data();
+  console.log(`new answer ${ref}`);
+  var tokensRef = await admin.firestore().collection('users').where('uid', '==', ref.createdById).get();
+  if (tokensRef.empty) {
+    console.log('no tokens found');
+  } else {
+    var tokens = [];
+    tokensRef.forEach(function(token) {
+      var data = token.data();
+      tokens.push(data.token);
+    });    
+    console.log(`tokens ${tokens}`);
     const payload = {
       notification: {
-        title: 'Nueva lección disponible',
-        body: `${ref.name}`,
+        title: 'Nueva respuesta disponible',
+        body: `${ref.author} te ha respondido "${ref.text}" a la pregunta ${ref.questionText}.`,
         icon: 'your-icon-url',
         click_action: 'FLUTTER_NOTIFICATION_CLICK'
       }
     };
-    return admin.messaging().sendToDevice(tokens, payload);
+    return admin.messaging().sendToDevice(tokens, payload); 
+  }
+});
+
+exports.lessonNotifications = functions.firestore.document('lessons/{lessonId}').onCreate(async snapshot => {
+  const ref = snapshot.data();
+  console.log(`new lesson ${ref}`);
+  const usersRef = await admin.firestore().collection('usersPerCourse').doc(ref.courseId).get();
+  var users = (usersRef.data())['users'];
+  var tokensRef = admin.firestore().collection('users');
+  console.log(`users ${users}`);
+  if(!users.empty){
+    users.forEach(function(user){
+      tokensRef = tokensRef.where('uid', '==', user);
+    });
+    tokensRef = await tokensRef.get();
+    if (tokensRef.empty) {
+      console.log('no tokens found');
+    } else {
+      var tokens = [];
+      tokensRef.forEach(function(token) {
+        var data = token.data();
+        tokens.push(data.token);
+      });    
+      console.log(`tokens ${tokens}`);
+      const payload = {
+        notification: {
+          title: `Nueva lección disponible`,
+          body: `Se ha agregado la lección ${ref.name} al curso ${ref.courseName}.`,
+          icon: 'your-icon-url',
+          click_action: 'FLUTTER_NOTIFICATION_CLICK'
+        }
+      };
+      return admin.messaging().sendToDevice(tokens, payload);            
+    }          
+  }      
 });

@@ -281,56 +281,6 @@ class _QuestionState extends State<Question>
       });
     }
 
-    // if (_answers.isEmpty) {
-    //   DatabaseManager.getAnswersPerQuestion(Auth.uid, widget.questionId).then((List<String> ls){
-    //     if(this.mounted) setState(() {
-    //       List<String> _answersListString = List<String>();
-    //       _answersListString = ls;
-    //       DatabaseManager.getAnswersPerQuestionByList(_answersListString, widget.questionId).then((List<Answer> la){
-    //         if(this.mounted) setState(() {
-    //           if(la.isNotEmpty) {
-    //             if(this.mounted) setState(() {
-    //               _hasAnswers = true;
-    //             });
-    //           }
-    //           for (var answer in la) {
-    //             DatabaseManager.getVotesToUserPerAnswer(Auth.uid, answer.answerId).then((voted) {
-    //               if(answer.authorId == Auth.uid) answer.mine = true;
-    //               if(answer.authorId == widget.courseAuthorId){
-    //                 setState(() {
-    //                   _boxResizeOpacityController.forward();                  
-    //                 });
-    //                 answer.owner = true;
-    //               }
-    //               if (voted) answer.voted = true;
-    //               setState(() {
-    //                 _answers.add(answer);
-    //               });
-    //             });
-    //           }
-    //         });
-    //       });
-    //     });
-    //   });
-    // }
-
-    // _answers.add(
-    //   Answer(
-    //     author: 'Creador',
-    //     text: 'Significa que únicamente se está utilizando como ejemplo para demostrar su utilización en la aplicación.',
-    //     voted: true,
-    //     owner: true,
-    //   )
-    // );
-    // _answers.add(
-    //   Answer(
-    //     author: 'José Pérez',
-    //     text: 'Ha de ser porque es de ejemplo.',
-    //     voted: false,
-    //     owner: false,
-    //   )
-    // );
-
     _answerPasser.receiver.listen((newAnswer) {
       if (newAnswer != null) {
         Map jsonAnswer = json.decode(newAnswer);
@@ -343,6 +293,7 @@ class _QuestionState extends State<Question>
               answerId: jsonAnswer['answerId'],
               questionId: jsonAnswer['questionId'],
               text: jsonAnswer['text'],
+              questionText: jsonAnswer['questionText'],
               owner: jsonAnswer['owner'],
               voted: false,
               votes: 0,
@@ -778,6 +729,9 @@ class _QuestionState extends State<Question>
                                         onTap: (){
                                           if(!_disabled){
                                             Vibration.vibrate(duration: 20);
+                                            ChatBar.createdById = widget.authorId;
+                                            ChatBar.createdByName = widget.author;
+                                            ChatBar.questionText = widget.text;
                                             if(InteractRoute.questionPositionController.status == AnimationStatus.dismissed || InteractRoute.questionPositionController.status == AnimationStatus.reverse){
                                               InteractRoute.questionController.add(widget.text);
                                               InteractRoute.questionPositionController.forward();

@@ -133,18 +133,6 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
       }
     }); 
 
-    // FirebaseDatabase.instance.reference().child("lessons").child(widget.lessonId).onChildRemoved.listen((data) {
-    //   if(this.mounted) setState(() {
-    //     _lessonDisabled = true;
-    //   });
-    // });
-    
-    // FirebaseDatabase.instance.reference().child("courses").child(widget.courseId).onChildRemoved.listen((data) {
-    //   if(this.mounted) setState(() {
-    //     _courseDisabled = trufe;
-    //   });
-    // });
-
     if(widget.owner){
       _uploadPresentation = Column(
         children: <Widget>[

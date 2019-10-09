@@ -19,6 +19,7 @@ class ChatBar extends StatefulWidget{
   static WidgetPasser questionPasser = WidgetPasser(), answerPasser = WidgetPasser(), labelPasser = WidgetPasser();
   static FocusNode chatBarFocusNode = FocusNode();
   static ChatBarMode mode;
+  static String createdById, createdByName, questionText;
 
   final bool owner;
   final String lessonId, questionToAnswer;
@@ -110,7 +111,7 @@ class _ChatBarState extends State<ChatBar> with SingleTickerProviderStateMixin{
         });
       }else if(ChatBar.mode == ChatBarMode.ANSWER){
         String questionId = Question.globalQuestionId;
-        DatabaseManager.addAnswers(questionId, author, authorId, widget.lessonId, val, day, month, year, hours, minutes).then((id){
+        DatabaseManager.addAnswers(questionId, author, authorId, widget.lessonId, val, day, month, year, hours, minutes, ChatBar.createdById, ChatBar.createdByName, ChatBar.questionText).then((id){
           Map text = {
             'answerId': id,
             'text': val,

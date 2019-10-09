@@ -4,7 +4,7 @@ import 'package:classroom/database_manager.dart';
 import 'package:classroom/auth.dart';
 
 class Answer extends StatefulWidget{
-  final String author, text, questionId, answerId, authorId, lessonId;
+  final String author, text, questionId, answerId, authorId, lessonId, questionText;
   bool voted, mine, owner;
   final int votes;
 
@@ -15,6 +15,7 @@ class Answer extends StatefulWidget{
     @required this.authorId,
     @required this.lessonId,
     @required this.text,
+    @required this.questionText,
     this.voted: false,
     this.mine: false,
     this.owner: false,

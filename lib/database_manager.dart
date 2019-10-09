@@ -23,8 +23,9 @@ class DatabaseManager{
   static saveDeviceToken(uid) async {
     String fcmToken = await _fcm.getToken();
     if (fcmToken != null) {
-      DocumentReference ref = Firestore.instance.collection('users').document(uid).collection('tokens').document(fcmToken);
+      DocumentReference ref = Firestore.instance.collection('users').document(uid);
       await ref.setData({
+        'uid': uid,
         'token': fcmToken,
         'createdAt': FieldValue.serverTimestamp(), // optional
         'platform': Platform.operatingSystem // optional
@@ -74,7 +75,7 @@ class DatabaseManager{
     DocumentReference reference = Firestore.instance.document('usersPerCourse/' + course);
     Firestore.instance.runTransaction((Transaction transaction) async {
       DocumentSnapshot snapshot = await transaction.get(reference);
-      if (snapshot.data != null) {
+      if (snapshot.exists) {
         list = List<String>.from(snapshot.data['users']);
         list.add(uid);
         transaction.update(reference, <String, dynamic>{'users': list});
@@ -124,12 +125,15 @@ class DatabaseManager{
     });  
   }
 
-  static Future<String> addAnswers(String question, String author, String authorId, String lesson, String text, int day, int month, int year, int hours, int minutes) async{
+  static Future<String> addAnswers(String question, String author, String authorId, String lesson, String text, int day, int month, int year, int hours, int minutes, String createdById, String createdByName, String questionText) async{
     DocumentReference reference = Firestore.instance.collection('lessons').document(lesson);
     await reference.collection("questions").document(question).collection("answers").document().setData({
       'text': text,
+      'questionText': questionText,
       'author': author,
       'authorId': authorId,
+      'createdById': createdById,
+      'createdByName': createdByName,
       'day': day,
       'month': month,
       'year': year,
@@ -180,6 +184,8 @@ class DatabaseManager{
   }
 
   static Future<bool> searchInArray(collection,document,field,compare) async{
+    print(field);
+    print(compare);
     List<dynamic> lista = new List<dynamic>();
     DocumentReference reference = Firestore.instance.collection(collection).document(document);
     await reference.get().then((snapshot){
@@ -253,12 +259,13 @@ class DatabaseManager{
     else return "0"+paramString;
   }
 
-  static Future<String> addLesson(String uid, String name, String description, int day, int month, int year, String course) async{
+  static Future<String> addLesson(String uid, String name, String description, int day, int month, int year, String course, String courseName) async{
     String date = (addZero(day)+"/"+addZero(month)+"/"+addZero(year));
     DocumentReference lesson = Firestore.instance.collection('lessons').document();
     lesson.setData({
       'authorId': uid,
       'courseId': course,
+      'courseName': courseName,
       'name': name,
       'fileExists' : false,
       'filePath' : '',
@@ -435,6 +442,7 @@ class DatabaseManager{
             author: doc['author'],
             authorId: doc['authorId'],
             lessonId: lessonId,
+            questionText: doc['questionText'],
             // day: doc['day'],
             // month: doc['month'],
             // year: doc['year'],
@@ -494,6 +502,7 @@ static Future<List<Lesson>> getLessonsPerCourseByList(List<String> listString, S
               Lesson(
                 lessonId: eachLesson,
                 courseId: courseId,
+                authorId: lesson['authorId'],
                 comments: lesson['comments'],
                 date: lesson['date'],
                 description: lesson['description'],
