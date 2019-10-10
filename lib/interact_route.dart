@@ -52,7 +52,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
   Future<String> getFilePath() async {
     String filePath = "";
     try {
-      filePath = await FilePicker.getFilePath(type: FileType.PDF);
+      filePath = await FilePicker.getFilePath(type: FileType.ANY);
       if (filePath == '') {
         return null;
       }

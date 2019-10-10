@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:native_pdf_renderer/native_pdf_renderer.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 // import 'package:pinch_zoom_image/pinch_zoom_image.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:classroom/widget_passer.dart';
 import 'package:vibration/vibration.dart';
@@ -105,11 +106,9 @@ class _PresentationState extends State<Presentation> with AutomaticKeepAliveClie
               alignment: Alignment.topCenter,
               child: Container(
                 padding: EdgeInsets.only(bottom: 58),
-                // child: PinchZoomImage(
-                //   image: Image(
-                //     image: MemoryImage(_pageImage.bytes),
-                //   ),
-                // ),
+                child: PhotoView(
+                  imageProvider: (MemoryImage(_pageImage.bytes))
+                )
               ),
             ),
             Positioned(
