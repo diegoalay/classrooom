@@ -98,40 +98,49 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
 
     InteractRoute.questionOpacityController.forward();
 
-    DatabaseManager.getFieldInDocument("lessons",widget.lessonId,"fileType").then((fileType){
-      print("fileType is: $fileType");
-      bool presentation = false;
-      if(fileType == "pdf") presentation = true;
-      if(this.mounted){
-        if(presentation == true){
-          if(this.mounted) setState(() {
-            _presentationExist = true;
-          });
-          DatabaseManager.getFiles("pdf", widget.lessonId).then((path){
-            print("ARCHIVO:  $path");
-            if(path != 'EXCEPTION'){
-              if(this.mounted) setState(() {
-                _presentation = Presentation(
-                  file: path,
-                );
-                _presentationLoaded = true;
-              });
-            }else{
-              if(this.mounted) setState(() {
-                _presentation = Text(
-                  'EXCEPCION :c',
-                );
-                _presentationLoaded = true;
-              });
-            }
-          });
-        }else{
-          setState(() {
-            _presentationLoaded = true;
-          });
-        }
-      }
-    }); 
+    // Firestore.instance.document("lessons/" + widget.lessonId).snapshots().listen((lesson){
+    //   if(lesson.data['fileExists']){
+    //   String fileType = lesson.data['fileType'];
+    //   print("fileType here: $fileType");
+    //   bool presentation = false;
+    //   if(fileType == "pdf") presentation = true;
+    //     if(this.mounted){
+    //       if(presentation == true){
+    //         if(this.mounted) setState(() {
+    //           _presentationExist = true;
+    //         });
+    //         DatabaseManager.getFiles("pdf", widget.lessonId).then((path){
+    //           print("ARCHIVO:  $path");
+    //           if(path != 'EXCEPTION'){
+    //             if(this.mounted) setState(() {
+    //               _presentation = Presentation(
+    //                 file: path,
+    //               );
+    //               _presentationLoaded = true;
+    //             });
+    //           }else{
+    //             if(this.mounted) setState(() {
+    //               _presentation = Text(
+    //                 'EXCEPCION :c',
+    //               );
+    //               _presentationLoaded = true;
+    //             });
+    //           }
+    //         });
+    //       }else{
+    //         setState(() {
+    //           _presentationLoaded = true;
+    //         });
+    //       }
+    //     }        
+    //   }else{
+    //     setState(() {
+    //       _presentationLoaded = true;
+    //     });        
+    //   }
+    // }); 
+
+    showFile();
 
     if(widget.owner){
       _uploadPresentation = Column(
@@ -159,6 +168,8 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
                       });
                     }
                   });
+                }).then((_){
+                  showFile();
                 });
               },
             ),
@@ -234,7 +245,6 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
           if(question.authorId == Auth.uid) question.mine = true;
           List<String> lista = List<String>.from(doc.document['usersVote']); 
           if(lista.contains(Auth.uid)) question.voted = true;  
-          // if(question.votes > 0) question.answered = true;
           question.courseAuthorId = widget.authorId;
           if(this.mounted){
             setState(() {
@@ -466,5 +476,42 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
         ],
       ),
     );
+  }
+
+  void showFile(){
+    DatabaseManager.getFieldInDocument("lessons",widget.lessonId,"fileType").then((fileType){
+      print("fileType is: $fileType");
+      bool presentation = false;
+      if(fileType == "pdf") presentation = true;
+      if(this.mounted){
+        if(presentation == true){
+          if(this.mounted) setState(() {
+            _presentationExist = true;
+          });
+          DatabaseManager.getFiles("pdf", widget.lessonId).then((path){
+            print("ARCHIVO:  $path");
+            if(path != 'EXCEPTION'){
+              if(this.mounted) setState(() {
+                _presentation = Presentation(
+                  file: path,
+                );
+                _presentationLoaded = true;
+              });
+            }else{
+              if(this.mounted) setState(() {
+                _presentation = Text(
+                  'EXCEPCION :c',
+                );
+                _presentationLoaded = true;
+              });
+            }
+          });
+        }else{
+          setState(() {
+            _presentationLoaded = true;
+          });
+        }
+      }
+    }); 
   }
 }

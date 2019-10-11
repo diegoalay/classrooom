@@ -28,7 +28,7 @@ class _YouTubeVideoState extends State<YouTubeVideo> with TickerProviderStateMix
   AnimationController _videoPlayButtonController, _videoUIOpacityController, _videoSeekUIOpacityController;
   String _videoPosition, _videoDuration;
   bool _videoInitialized, _activeSlider;
-  YoutubePlayerController _videoController;
+  YoutubePlayerController _videoController = YoutubePlayerController();
   double _videoDurationBarWidth, _videoForwardOpacity, _videoBackwardOpacity, _sliderValue;
 
   @override
@@ -164,45 +164,59 @@ class _YouTubeVideoState extends State<YouTubeVideo> with TickerProviderStateMix
     return Container(
       margin: EdgeInsets.only(bottom: 18),
       child: Stack(
-        children: <Widget>[
-          YoutubePlayer(
+          children: <Widget>[
+            YoutubePlayer(
               context: context,
               videoId: widget.videoId,
               flags: YoutubePlayerFlags(
-                  mute: false,
-                  autoPlay: false,
-                  forceHideAnnotation: true,
-                  showVideoProgressIndicator: false,
+                mute: false,
+                autoPlay: true,
+                forceHideAnnotation: true,
+                showVideoProgressIndicator: true,
+                disableDragSeek: false,
+                hideControls: true,
               ),
-              videoProgressIndicatorColor: Colors.amber,
+              videoProgressIndicatorColor: Color(0xFFFF0000),
+              actions: <Widget>[
+                IconButton(
+                  icon: Icon(
+                    Icons.arrow_back_ios,
+                    color: Colors.white,
+                    size: 20.0,
+                  ),
+                  onPressed: () {},
+                ),
+                Text(
+                  'Hello! This is a test title.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18.0,
+                  ),
+                ),
+                Spacer(),
+                IconButton(
+                  icon: Icon(
+                    Icons.settings,
+                    color: Colors.white,
+                    size: 25.0,
+                  ),
+                  onPressed: () {},
+                ),
+              ],              
               progressColors: ProgressColors(
-                playedColor: Colors.amber,
-                handleColor: Colors.amberAccent,
+                playedColor: Color(0xFFFF0000),
+                handleColor: Color(0xFFFF4433),
               ),
               onPlayerInitialized: (controller) {
                 _videoController = controller;
-                _videoController.addListener((){
-                  _updateVideoUI();
-                });
+              _videoController.addListener((){
+                _updateVideoUI();
+              });
               },
-          ),          
-          // YoutubePlayer(
-          //   showVideoProgressbar: false,
-          //   reactToOrientationChange: false,
-          //   showThumbnail: true,
-          //   autoPlay: false,
-          //   context: context,
-          //   playerMode: YoutubePlayerMode.NO_CONTROLS,
-          //   source: widget.videoId,
-          //   quality: YoutubeQuality.LOW,
-          //   callbackController: (controller){
-          //     _videoController = controller;
-          //     _videoController.addListener((){
-          //       _updateVideoUI();
-          //     });
-          //   },
-          //   onVideoEnded: (){},
-          // ),
+            ),
+            SizedBox(
+              height: 10.0,
+            ),
           Positioned(
             bottom: 0,
             left: 0,
@@ -476,140 +490,141 @@ class _YouTubeVideoState extends State<YouTubeVideo> with TickerProviderStateMix
                 ),
               ),
             ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Container(
-                    height: 4,
-                    color: Color.fromARGB(50, 255, 255, 255),
-                    child: Stack(
-                      overflow: Overflow.visible,
-                      children: <Widget>[
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 24),
-                          child: FractionallySizedBox(
-                            alignment: Alignment.centerLeft,
-                            heightFactor: 1,
-                            widthFactor: 1,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Color.fromARGB(30, 255, 96, 64), 
-                                borderRadius: BorderRadius.circular(20)
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 24),
-                          child: FractionallySizedBox(
-                            alignment: Alignment.centerLeft,
-                            heightFactor: 1,
-                            widthFactor: _videoDurationBarWidth,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor,
-                                borderRadius: BorderRadius.circular(20)
-                              ),
-                            ),
-                          ),
-                        ),
-                        // Positioned(
-                        //   left: _sliderValue,
-                        //   bottom: -8,
-                        //   child: Container(
-                        //     child: Draggable(
-                        //       affinity: Axis.horizontal,
-                        //       maxSimultaneousDrags: 1,
-                        //       onDragStarted: (){
-                        //         _activeSlider = true;
-                        //         Vibration.hasVibrator().then((val){
-                        //           if(val){
-                        //             Vibration.vibrate(duration: 40);
-                        //           }
-                        //         });
-                        //       },
-                        //       onDraggableCanceled: (velocity, offset){
-                        //         double width = MediaQuery.of(context).size.width;
-                        //         VideoPlayerValue value = _videoController.value;
-                        //         double position = offset.dx/width;
-                        //         int seekToSeconds = (value.duration.inSeconds * position).round() % 60;
-                        //         String seekToSecondsString = (seekToSeconds < 10)? '0$seekToSeconds':'$seekToSeconds';
-                        //         setState(() {
-                        //           _sliderValue = offset.dx;
-                        //           // _videoDurationBarWidth = position; 
-                        //           _videoPosition = '${(value.duration.inSeconds * position / 60).truncate()}:$seekToSecondsString';
-                        //         });
-                        //         _activeSlider = false;
-                        //         _videoController.seekTo(Duration(milliseconds: (_videoController.value.duration.inMilliseconds * position).round()));
-                        //       },
-                        //       childWhenDragging: Container(),
-                        //       axis: Axis.horizontal,
-                        //       child: ScaleTransition(
-                        //         scale: _videoUIOpacityFloat,
-                        //         child: Container(
-                        //           height: 20,
-                        //           width: 20,
-                        //           decoration: BoxDecoration(
-                        //             color: Theme.of(context).primaryColor,
-                        //             shape: BoxShape.circle
-                        //           ),
-                        //         ),
-                        //       ),
-                        //       feedback: Container(
-                        //         height: 20,
-                        //         width: 20,
-                        //         decoration: BoxDecoration(
-                        //           color: Theme.of(context).primaryColor,
-                        //           shape: BoxShape.circle
-                        //         ),
-                        //       ),
-                        //     ),
-                        //   ),
-                        // ),
-                        FadeTransition(
-                          opacity: _videoUIOpacityFloat,
-                          child: Container(
-                            child: Slider(
-                              activeColor: Theme.of(context).primaryColor,
-                              inactiveColor: Colors.transparent,
-                              value: _sliderValue,
-                              onChangeStart: (position){
-                                _activeSlider = true;
-                                Vibration.hasVibrator().then((val){
-                                  if(val){
-                                    Vibration.vibrate(duration: 20);
-                                  }
-                                });
-                              },
-                              onChanged: (position){
-                                YoutubePlayerValue value = _videoController.value;
-                                int seekToSeconds = (value.duration.inSeconds * position).round() % 60;
-                                String seekToSecondsString = (seekToSeconds < 10)? '0$seekToSeconds':'$seekToSeconds'; 
-                                setState(() {
-                                  _videoPosition = '${(value.duration.inSeconds * position / 60).truncate()}:$seekToSecondsString';
-                                  _sliderValue = position;
-                                  _videoDurationBarWidth = position;
-                                });
-                              },
-                              onChangeEnd: (position){
-                                _activeSlider = false;
-                                _videoController.seekTo(Duration(seconds: (_videoController.value.duration.inSeconds * position).round()));
-                              },
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ),            
+          // Positioned(
+          //   bottom: 0,
+          //   left: 0,
+          //   right: 0,
+          //   child: Row(
+          //     children: <Widget>[
+          //       Expanded(
+          //         child: Container(
+          //           height: 4,
+          //           color: Color.fromARGB(50, 255, 255, 255),
+          //           child: Stack(
+          //             overflow: Overflow.visible,
+          //             children: <Widget>[
+          //               Container(
+          //                 padding: EdgeInsets.symmetric(horizontal: 24),
+          //                 child: FractionallySizedBox(
+          //                   alignment: Alignment.centerLeft,
+          //                   heightFactor: 1,
+          //                   widthFactor: 1,
+          //                   child: Container(
+          //                     decoration: BoxDecoration(
+          //                       color: Color.fromARGB(30, 255, 96, 64), 
+          //                       borderRadius: BorderRadius.circular(20)
+          //                     ),
+          //                   ),
+          //                 ),
+          //               ),
+          //               Container(
+          //                 padding: EdgeInsets.symmetric(horizontal: 24),
+          //                 child: FractionallySizedBox(
+          //                   alignment: Alignment.centerLeft,
+          //                   heightFactor: 1,
+          //                   widthFactor: _videoDurationBarWidth,
+          //                   child: Container(
+          //                     decoration: BoxDecoration(
+          //                       color: Theme.of(context).primaryColor,
+          //                       borderRadius: BorderRadius.circular(20)
+          //                     ),
+          //                   ),
+          //                 ),
+          //               ),
+          //               Positioned(
+          //                 left: _sliderValue,
+          //                 bottom: -8,
+          //                 child: Container(
+          //                   child: Draggable(
+          //                     affinity: Axis.horizontal,
+          //                     maxSimultaneousDrags: 1,
+          //                     onDragStarted: (){
+          //                       _activeSlider = true;
+          //                       Vibration.hasVibrator().then((val){
+          //                         if(val){
+          //                           Vibration.vibrate(duration: 40);
+          //                         }
+          //                       });
+          //                     },
+          //                     onDraggableCanceled: (velocity, offset){
+          //                       double width = MediaQuery.of(context).size.width;
+          //                       YoutubePlayerValue value = _videoController.value;
+          //                       double position = offset.dx/width;
+          //                       int seekToSeconds = (value.duration.inSeconds * position).round() % 60;
+          //                       String seekToSecondsString = (seekToSeconds < 10)? '0$seekToSeconds':'$seekToSeconds';
+          //                       setState(() {
+          //                         _sliderValue = offset.dx;
+          //                         print('slider $_sliderValue');
+          //                         // _videoDurationBarWidth = position; 
+          //                         _videoPosition = '${(value.duration.inSeconds * position / 60).truncate()}:$seekToSecondsString';
+          //                       });
+          //                       _activeSlider = false;
+          //                       _videoController.seekTo(Duration(milliseconds: (_videoController.value.duration.inMilliseconds * position).round()));
+          //                     },
+          //                     childWhenDragging: Container(),
+          //                     axis: Axis.horizontal,
+          //                     child: ScaleTransition(
+          //                       scale: _videoUIOpacityFloat,
+          //                       child: Container(
+          //                         height: 20,
+          //                         width: 20,
+          //                         decoration: BoxDecoration(
+          //                           color: Theme.of(context).primaryColor,
+          //                           shape: BoxShape.circle
+          //                         ),
+          //                       ),
+          //                     ),
+          //                     feedback: Container(
+          //                       height: 20,
+          //                       width: 20,
+          //                       decoration: BoxDecoration(
+          //                         color: Theme.of(context).primaryColor,
+          //                         shape: BoxShape.circle
+          //                       ),
+          //                     ),
+          //                   ),
+          //                 ),
+          //               ),
+          //               FadeTransition(
+          //                 opacity: _videoUIOpacityFloat,
+          //                 child: Container(
+          //                   child: Slider(
+          //                     activeColor: Theme.of(context).primaryColor,
+          //                     inactiveColor: Colors.transparent,
+          //                     value: _sliderValue,
+          //                     onChangeStart: (position){
+          //                       _activeSlider = true;
+          //                       Vibration.hasVibrator().then((val){
+          //                         if(val){
+          //                           Vibration.vibrate(duration: 20);
+          //                         }
+          //                       });
+          //                     },
+          //                     onChanged: (position){
+          //                       YoutubePlayerValue value = _videoController.value;
+          //                       int seekToSeconds = (value.duration.inSeconds * position).round() % 60;
+          //                       String seekToSecondsString = (seekToSeconds < 10)? '0$seekToSeconds':'$seekToSeconds'; 
+          //                       setState(() {
+          //                         _videoPosition = '${(value.duration.inSeconds * position / 60).truncate()}:$seekToSecondsString';
+          //                         _sliderValue = position;
+          //                         _videoDurationBarWidth = position;
+          //                       });
+          //                     },
+          //                     onChangeEnd: (position){
+          //                       _activeSlider = false;
+          //                       _videoController.seekTo(Duration(seconds: (_videoController.value.duration.inSeconds * position).round()));
+          //                     },
+          //                   ),
+          //                 ),
+          //               ),
+          //             ],
+          //           )
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),          
         ],
       ),
     );

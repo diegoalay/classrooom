@@ -331,6 +331,24 @@ class DatabaseManager{
     return filePath;
   }
 
+  static Future<void> updateByQyery(String path, var condition, var columnCompare, var param, var columnSet, var val) async{
+    QuerySnapshot query;
+    CollectionReference reference = Firestore.instance.collection(path);
+    switch(condition){
+      case "=": {
+        query = await reference.where(columnCompare, isEqualTo: param).getDocuments();
+        break;
+      }
+    }
+    query.documents.forEach((doc) {
+        var ref = reference.document(doc.documentID);
+        return ref.updateData({
+            columnSet: val,
+        });
+    });
+  }
+  
+
   static Future<void> updateQuestion(String lesson, String question, String param, String column, String uid) async{
     DocumentReference reference = Firestore.instance.document('lessons/' + lesson + "/questions/" + question);
     Firestore.instance.runTransaction((Transaction transaction) async {
@@ -384,9 +402,9 @@ class DatabaseManager{
             transaction.update(reference, <String, dynamic>{column: FieldValue.increment(int.parse(param))});      
             break;
           }
-          case "accessCode": 
           case "name":{
-            transaction.update(reference, <String, dynamic>{'accessCode': param});       
+            transaction.update(reference, <String, dynamic>{'name': param});       
+            updateByQyery("lessons", "=", "courseId", code, "courseName", param);
             break;
           } 
         }           
@@ -398,7 +416,6 @@ class DatabaseManager{
     DocumentReference reference = Firestore.instance.collection('courses').document(code);
     await reference.get().then((snapshot){
       if(snapshot.data != null){
-        print("snap: ${snapshot.data}");
         int participants = snapshot.data['participants'];
         updateCourse(code,"1","participants");
         addUsersPerCourse(code,uid);

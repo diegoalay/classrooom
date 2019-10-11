@@ -440,9 +440,12 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
           InteractRoute.questionOpacityController.reverse();
         }); 
       } else if (Nav.addBarMode == AddBarMode.YOUTUBE_PATH) {
-        String videoId = val.split('?v=')[1];
+        String videoId;
+        if(val.contains('?v-')) videoId = val.split('?v=')[1];
+        else videoId = val;
+        print(videoId);
         DatabaseManager.uploadFiles("url", widget.lessonId, videoId).then((path){
-          
+        
         });  
       }
     }else{
