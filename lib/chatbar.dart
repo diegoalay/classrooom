@@ -93,41 +93,27 @@ class _ChatBarState extends State<ChatBar> with SingleTickerProviderStateMixin{
       String author = Auth.getName();
       if(ChatBar.mode == ChatBarMode.QUESTION){
         print("atach: ${widget.questionToAnswer}");
-        DatabaseManager.addQuestions(author, authorId, widget.lessonId, val, day, month, year, hours, minutes).then((id){
-          // Map text = {
-          //   'text': val,
-          //   'author': author,
-          //   'authorId': authorId,
-          //   'owner': widget.owner,
-          //   'day': day,
-          //   'month': month,
-          //   'year': year,
-          //   'hours': hours,
-          //   'minutes': minutes,
-          //   'questionId': id,
-          // };
-          // String textQuestion = json.encode(text);
-          // ChatBar.questionPasser.sendWidget.add(textQuestion);          
-        });
+        DatabaseManager.addQuestions(author, authorId, widget.lessonId, val, day, month, year, hours, minutes).then((id){});
       }else if(ChatBar.mode == ChatBarMode.ANSWER){
         String questionId = Question.globalQuestionId;
         DatabaseManager.addAnswers(questionId, author, authorId, widget.lessonId, val, day, month, year, hours, minutes, ChatBar.createdById, ChatBar.createdByName, ChatBar.questionText).then((id){
-          Map text = {
-            'answerId': id,
-            'text': val,
-            'author': author,
-            'questionId': questionId,
-            'authorId': authorId,
-            'owner': widget.owner,
-            'day': day,
-            'month': month,
-            'year': year,
-            'hours': hours,
-            'minutes': minutes,
-          };
-          String textAnswer = json.encode(text);
-          Question.answerPasser.sender.add(textAnswer);
-          if(widget.owner) Question.answeredPasser.sender.add('1');
+        //   Map text = {
+        //     'answerId': id,
+        //     'text': val,
+        //     'author': author,
+        //     'questionId': questionId,
+        //     'authorId': authorId,
+        //     'owner': widget.owner,
+        //     'day': day,
+        //     'month': month,
+        //     'year': year,
+        //     'hours': hours,
+        //     'minutes': minutes,
+        //     'usersVote': []
+        //   };
+        //   String textAnswer = json.encode(text);
+        //   Question.answerPasser.sender.add(textAnswer);
+        //   if(widget.owner) Question.answeredPasser.sender.add('1');
           InteractRoute.questionPositionController.reverse();
           ChatBar.labelPasser.sender.add('Escriba una pregunta');
           ChatBar.mode = ChatBarMode.QUESTION;          

@@ -33,6 +33,7 @@ class Nav extends StatefulWidget{
   static WidgetPasser coursePasser = WidgetPasser();
   static WidgetPasser lessonPasser = WidgetPasser();
   static WidgetPasser popPasser = WidgetPasser();
+  static String sectionId;
   
   final Widget body;
   final String title, section, subtitle, courseId, lessonId, courseName;
@@ -81,7 +82,6 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
   FocusNode _focusAddBarNodeLessons, _focusAddBarNodeCourses;
   SharedPreferences prefs;
   bool _resizeScaffold, _showInteractQuestions;
-
   DateTime selectedDate = DateTime.now();
   //WidgetPasser courseBloc = WidgetPasser();
 
@@ -100,7 +100,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
 
     //TODO: Poner esto en true cuando se quiere mostrar las preguntas.
     _showInteractQuestions = true;
-
+    Nav.sectionId = widget.section;
     Nav.popPasser.receiver.listen((newPop) {
       if (newPop != null) {
         if (this.mounted) {

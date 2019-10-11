@@ -84,7 +84,8 @@ class _LessonState extends State<Lesson> with TickerProviderStateMixin, Automati
       if(!snapshot.exists) {
         if(this.mounted) setState(() {
           _deleteLesson();
-          Navigator.of(context).pop();
+          print(Nav.sectionId);
+          if(Nav.sectionId == 'interact') Navigator.of(context).pop();
         });         
         DatabaseManager.deleteDocumentInCollection("questionsPerLesson",widget.lessonId);
       }else{

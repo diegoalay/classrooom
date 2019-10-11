@@ -90,39 +90,19 @@ class DatabaseManager{
 
 
   static void removeVoteToQuestion(String lessonId, String authorId, String question, String val){
-    CollectionReference reference = Firestore.instance.collection('lessons').document(lessonId).collection("questions").document(question).collection("votes");
-    Firestore.instance.runTransaction((Transaction transaction) async {
-      transaction.set(reference.document(authorId), <String, dynamic>{"voted": false}).then((_){
-        updateQuestion(lessonId,question, val, "votes");
-      });
-    });  
+    updateQuestion(lessonId,question,val,"votesAndUsersVote", authorId);
   }
 
   static void addVoteToQuestion(String lessonId, String authorId, String question, String val){   
-    CollectionReference reference = Firestore.instance.collection('lessons').document(lessonId).collection("questions").document(question).collection("votes");
-    Firestore.instance.runTransaction((Transaction transaction) async {
-      transaction.set(reference.document(authorId), <String, dynamic>{"voted": true}).then((_){
-        updateQuestion(lessonId,question, val, "votes");
-      });
-    });    
+    updateQuestion(lessonId,question,val,"votesAndUsersVote", authorId);
   }
 
   static void removeVoteToAnswer(String lessonId, String authorId, String question, String answer, String val){
-    CollectionReference reference = Firestore.instance.collection('lessons').document(lessonId).collection("questions").document(question).collection("answers").document(answer).collection("votes");
-    Firestore.instance.runTransaction((Transaction transaction) async {
-      transaction.set(reference.document(authorId), <String, dynamic>{"voted": false}).then((_){
-        updateAnswer(lessonId,question,answer,val,"votes");
-      });
-    });
+    updateAnswer(lessonId,question,answer,val,"votesAndUsersVote", authorId);
   }
 
   static void addVoteToAnswer(String lessonId, String authorId, String question, String answer, String val){
-    CollectionReference reference = Firestore.instance.collection('lessons').document(lessonId).collection("questions").document(question).collection("answers").document(answer).collection("votes");
-    Firestore.instance.runTransaction((Transaction transaction) async {
-      transaction.set(reference.document(authorId), <String, dynamic>{"voted": true}).then((_){
-        updateAnswer(lessonId,question,answer,val,"votes");
-      });
-    });  
+    updateAnswer(lessonId,question,answer,val,"votesAndUsersVote", authorId);
   }
 
   static Future<String> addAnswers(String question, String author, String authorId, String lesson, String text, int day, int month, int year, int hours, int minutes, String createdById, String createdByName, String questionText) async{
@@ -140,8 +120,9 @@ class DatabaseManager{
       'hours': hours,
       'minutes': minutes,
       'votes': 0,
+      'usersVote': []
     }).then((_){
-      updateQuestion(lesson, question, "1", "comments");
+      updateQuestion(lesson, question, "1", "comments", "");
     });
     return reference.documentID;
   }
@@ -159,6 +140,7 @@ class DatabaseManager{
       'minutes': minutes,
       'votes': 0,
       'attachPosition': attachPosition,
+      'usersVote': [],
     }).then((_){
       updateLesson(lesson,"1","comments","","");
     });
@@ -296,7 +278,7 @@ class DatabaseManager{
     return course.documentID;
   }
 
-  static Future<void> updateAnswer(String lesson, String question, String answer, String param, String column) async{
+  static Future<void> updateAnswer(String lesson, String question, String answer, String param, String column, String uid) async{
     DocumentReference reference = Firestore.instance.document('lessons/' + lesson + "/questions/" + question + "/answers/" + answer);
     await Firestore.instance.runTransaction((Transaction transaction) async {
       switch(column){
@@ -304,6 +286,14 @@ class DatabaseManager{
           transaction.update(reference, <String, dynamic>{'votes': FieldValue.increment(int.parse(param))});      
           break;
         }
+        case "votesAndUsersVote": {
+          DocumentSnapshot snapshot = await transaction.get(reference);
+          List<String> list = List<String>.from(snapshot.data['usersVote']);
+          if(param == "-1") list.remove(uid);
+          else list.add(uid);
+          transaction.update(reference, <String, dynamic>{'votes': FieldValue.increment(int.parse(param)), 'usersVote': list});      
+          break;
+        }        
         default: {
           transaction.update(reference, <String, dynamic>{column: param});       
           break;
@@ -341,7 +331,7 @@ class DatabaseManager{
     return filePath;
   }
 
-  static Future<void> updateQuestion(String lesson, String question, String param, String column) async{
+  static Future<void> updateQuestion(String lesson, String question, String param, String column, String uid) async{
     DocumentReference reference = Firestore.instance.document('lessons/' + lesson + "/questions/" + question);
     Firestore.instance.runTransaction((Transaction transaction) async {
       switch(column){
@@ -349,6 +339,14 @@ class DatabaseManager{
           transaction.update(reference, <String, dynamic>{'votes': FieldValue.increment(int.parse(param))});   
           break;
         }
+        case "votesAndUsersVote": {
+          DocumentSnapshot snapshot = await transaction.get(reference);
+          List<String> list = List<String>.from(snapshot.data['usersVote']);
+          if(param == "-1") list.remove(uid);
+          else list.add(uid);
+          transaction.update(reference, <String, dynamic>{'votes': FieldValue.increment(int.parse(param)), 'usersVote': list});      
+          break;
+        }          
         default: {
           transaction.update(reference, <String, dynamic>{column: param});    
           break;

@@ -5,25 +5,27 @@ admin.initializeApp(functions.config().firebase);
 exports.answersNotifications = functions.firestore.document('lessons/{lessonId}/questions/{questionId}/answers/{answerId}').onCreate(async snapshot => {
   const ref = snapshot.data();
   console.log(`new answer ${ref}`);
-  var tokensRef = await admin.firestore().collection('users').where('uid', '==', ref.createdById).get();
-  if (tokensRef.empty) {
-    console.log('no tokens found');
-  } else {
-    var tokens = [];
-    tokensRef.forEach(function(token) {
-      var data = token.data();
-      tokens.push(data.token);
-    });    
-    console.log(`tokens ${tokens}`);
-    const payload = {
-      notification: {
-        title: 'Nueva respuesta disponible',
-        body: `${ref.author} te ha respondido "${ref.text}" a la pregunta ${ref.questionText}.`,
-        icon: 'your-icon-url',
-        click_action: 'FLUTTER_NOTIFICATION_CLICK'
-      }
-    };
-    return admin.messaging().sendToDevice(tokens, payload); 
+  if(ref.authorId !== ref.createdById){
+    var tokensRef = await admin.firestore().collection('users').where('uid', '==', ref.createdById).get();
+    if (tokensRef.empty) {
+      console.log('no tokens found');
+    } else {  
+      var tokens = [];
+      tokensRef.forEach(function(token) {
+        var data = token.data();
+        tokens.push(data.token);
+      });    
+      console.log(`tokens ${tokens}`);
+      const payload = {
+        notification: {
+          title: 'Nueva respuesta disponible',
+          body: `${ref.author} te ha respondido "${ref.text}" a la pregunta ${ref.questionText}.`,
+          icon: 'your-icon-url',
+          click_action: 'FLUTTER_NOTIFICATION_CLICK'
+        }
+      };
+      return admin.messaging().sendToDevice(tokens, payload); 
+    }
   }
 });
 
@@ -34,9 +36,9 @@ exports.lessonNotifications = functions.firestore.document('lessons/{lessonId}')
   var users = (usersRef.data())['users'];
   var tokensRef = admin.firestore().collection('users');
   console.log(`users ${users}`);
-  if(!users.empty){
+  if(!(users.empty)){
     users.forEach(function(user){
-      tokensRef = tokensRef.where('uid', '==', user);
+      if(user !== ref.authorId) tokensRef = tokensRef.where('uid', '==', user);
     });
     tokensRef = await tokensRef.get();
     if (tokensRef.empty) {

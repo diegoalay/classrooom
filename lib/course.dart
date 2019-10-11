@@ -102,6 +102,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
       if(value == null) {
         if(this.mounted) setState(() {
           _deleteCourse();
+          if(Nav.sectionId == 'lessons') Navigator.of(context).pop();
         });         
         DatabaseManager.deleteDocumentInCollection("lessonsPerCourse",widget.courseId);
       }else{
