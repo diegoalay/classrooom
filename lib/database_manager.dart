@@ -402,6 +402,10 @@ class DatabaseManager{
             transaction.update(reference, <String, dynamic>{column: FieldValue.increment(int.parse(param))});      
             break;
           }
+          case "accessCode":{
+            transaction.update(reference, <String, dynamic>{column: param});
+            break;
+          }
           case "name":{
             transaction.update(reference, <String, dynamic>{'name': param});       
             updateByQyery("lessons", "=", "courseId", code, "courseName", param);

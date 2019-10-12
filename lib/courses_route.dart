@@ -5,7 +5,9 @@ import 'dart:convert';
 import 'package:classroom/nav.dart';
 import 'package:classroom/database_manager.dart';
 import 'package:classroom/auth.dart';
-import 'package:qr_utils/qr_utils.dart';
+// import 'package:qr_utils/qr_utils.dart';
+// import 'package:qrcode_reader/qrcode_reader.dart';
+import 'package:barcode_scan/barcode_scan.dart';
 import 'package:classroom/notify.dart';
 
 class CoursesRoute extends StatefulWidget{
@@ -24,7 +26,7 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
 
   void _scanQR() async{
     try{
-      _contentQR = await QrUtils.scanQR;
+      _contentQR = await BarcodeScanner.scan();
     }catch(e){
       print(e);
     }
