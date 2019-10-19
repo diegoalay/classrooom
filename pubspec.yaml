@@ -38,10 +38,8 @@ dependencies:
   #dependencies for PDF and VIDEO
   native_pdf_renderer: ^1.6.0
   shared_preferences: ^0.5.2+1
-  # youtube_player: ^3.4.1
   youtube_player_flutter: ^4.1.0
   #dependencies for QR
-  # pinch_zoom_image: ^0.2.5
   photo_view: ^0.5.0
   qr_flutter: ^3.0.1
   barcode_scan: ^1.0.0

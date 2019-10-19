@@ -273,7 +273,7 @@ class DatabaseManager{
     }).then((_){
       addCoursesPerUser(authorId,course.documentID);
       addUsersPerCourse(course.documentID,authorId);
-      updateCourse(course.documentID,course.documentID,"accessCode");
+      updateCourse(course.documentID,course.documentID,"id");
     });
     return course.documentID;
   }
@@ -402,7 +402,7 @@ class DatabaseManager{
             transaction.update(reference, <String, dynamic>{column: FieldValue.increment(int.parse(param))});      
             break;
           }
-          case "accessCode":{
+          case "id":{
             transaction.update(reference, <String, dynamic>{column: param});
             break;
           }
@@ -425,7 +425,7 @@ class DatabaseManager{
         addUsersPerCourse(code,uid);
         addCoursesPerUser(uid,code);
         course = {
-          'accessCode': snapshot.data['accessCode'],
+          'id': snapshot.data['id'],
           'participants': participants + 1,
           'lessons': snapshot.data['lessons'],
           'name': snapshot.data['name'],
@@ -488,7 +488,7 @@ class DatabaseManager{
             else userOwner = false;
             coursesList.add(
               Course(
-                courseId: course['accessCode'],
+                courseId: course['id'],
                 participants: course['participants'],
                 lessons: course['lessons'],
                 name: course['name'],

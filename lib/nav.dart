@@ -40,7 +40,7 @@ class Nav extends StatefulWidget{
   final double preferredSize, elevation;
   final bool drawerActive, addBarActive, notificationsActive, owner;
   final Color color, titleColor, actionsColor;
-  final String acessCode;
+  final String id;
   final WidgetPasser addBarModePasser;
 
   const Nav({
@@ -60,7 +60,7 @@ class Nav extends StatefulWidget{
     this.lessonId: 'NA',
     this.courseName: 'NA',
     this.preferredSize: 60.0,
-    this.acessCode,
+    this.id,
     this.addBarModePasser,
   });
 
@@ -288,7 +288,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
     if(val.trim() != ''){
       if(Nav.addBarMode == AddBarMode.CREATE){
         if(widget.section == 'courses'){
-          DatabaseManager.addCourse(authorId,author,val).then((accessCode){
+          DatabaseManager.addCourse(authorId,author,val).then((id){
             Map text = {
               //TODO: Generar un nuevo código y agregar el curso a la base de datos.
               'name' : val,
@@ -296,7 +296,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
               'author' : author,
               'lessons' : 0,
               'participants' : 1, 
-              'accessCode': accessCode,
+              'id': id,
               'owner': true,
             };
             String textCourse = json.encode(text);
@@ -308,7 +308,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
           int day = nowDate.day;
           int month = nowDate.month;
           int year = nowDate.year;
-          DatabaseManager.addLesson(Auth.uid, val, '', day, month, year, widget.acessCode, widget.courseName);
+          DatabaseManager.addLesson(Auth.uid, val, '', day, month, year, widget.id, widget.courseName);
           // Map text = {
           //   //TODO: obtener los comentarios de la lección.
           //   'name' : val,

@@ -98,10 +98,10 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
 
     Firestore.instance.collection("courses").document(widget.courseId).snapshots().listen((snapshot){
       if(!snapshot.exists) {
-        // if(this.mounted) setState(() {
-          // _deleteCourse();
-        // });         
-        // DatabaseManager.deleteDocumentInCollection("lessonsPerCourse",widget.courseId);       
+        if(this.mounted) setState(() {
+          _deleteCourse();
+        });         
+        DatabaseManager.deleteDocumentInCollection("lessonsPerCourse",widget.courseId);       
       }else{
         var value = snapshot.data;
         if(this.mounted){
@@ -214,7 +214,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
                   owner: widget.owner,
                   authorId: widget.authorId
                 ),
-                acessCode: widget.courseId,
+                id: widget.courseId,
               );
             }),
           );

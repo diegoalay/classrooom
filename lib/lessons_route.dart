@@ -86,7 +86,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
       var value = snapshot.data;
       if(value == null) {
         if(this.mounted) setState(() {
-          // _disabled = true;
+          _disabled = true;
         });
       }else{
         if(this.mounted){

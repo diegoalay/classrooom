@@ -106,7 +106,7 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
           setState(() {
             _coursesList.add(
               Course(
-                courseId: jsonCourse['accessCode'],
+                courseId: jsonCourse['id'],
                 participants: jsonCourse['participants'],
                 name: jsonCourse['name'],
                 author: jsonCourse['author'],
