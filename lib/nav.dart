@@ -1105,6 +1105,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                       right: 0,
                       bottom: 0,
                       child: InteractQuestions(
+                        courseId: widget.courseId,
                         onReject: _handleQuestionsReject,
                       ),
                     ) : Container()

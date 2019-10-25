@@ -1,4 +1,6 @@
 
+import 'dart:convert';
+
 import 'package:classroom/course.dart';
 import 'package:classroom/lesson.dart';
 import 'package:classroom/question.dart';
@@ -10,12 +12,13 @@ import 'dart:async';
 import 'package:path_provider/path_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:http/http.dart' as http;
 
 class DatabaseManager{
   static StorageReference storageRef = FirebaseStorage.instance.ref();
   static Directory tempDir = Directory.systemTemp;
   static FirebaseMessaging _fcm = FirebaseMessaging();
-
+  static String serverIp = '10.1.3.71:8080';
   static FirebaseMessaging getFcm(){
     return _fcm;
   }
@@ -385,7 +388,7 @@ class DatabaseManager{
             transaction.update(reference, <String, dynamic>{'fileExists': param, 'fileType': type, 'filePath': filePath});      
             break;
           }          
-          default: {;
+          default: {
             transaction.update(reference, <String, dynamic>{column: param});       
             break;
           }
@@ -475,6 +478,29 @@ class DatabaseManager{
     return answersList;
   } 
 
+  static Future<List<dynamic>> requestGet(String path, dynamic data, String route) async {
+    // set up POST request arguments
+    try {
+      String url = 'http://' + serverIp + '/' + route;
+      Map<String, String> headers = {"Content-type": "application/json"};
+      Map<dynamic,dynamic> obj = {
+        'path': path,
+        'data': data,
+      };
+
+      var jsonObj = jsonEncode(obj);
+      // make POST request
+      var response = await http.post(url, headers: headers, body: jsonObj);
+
+      // check the status code for the result
+      int statusCode = response.statusCode;
+      String body = response.body;
+      return jsonDecode(body);
+    }catch (e) {
+      print('error $e');
+      return null;
+    }    
+  }
 
   static Future<List<Course>> getCoursesPerUserByList(List<String> listString, String uid) async{
     List<Course> coursesList = List<Course>();

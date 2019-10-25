@@ -1,9 +1,10 @@
+import 'package:classroom/database_manager.dart';
 import 'package:classroom/interact_questions/interact_answer.dart';
 import 'package:classroom/interact_questions/page_indicator.dart';
 import 'package:flutter/material.dart';
 
 class InteractQuestion extends StatefulWidget {
-  final String question;
+  final String question, questionnarieId;
   final int timeToAnswer, index, totalOfQuestions, totalOfAnswers, correctAnswer;
   final Function onTimeout;
 
@@ -13,6 +14,7 @@ class InteractQuestion extends StatefulWidget {
     @required this.totalOfQuestions,
     @required this.totalOfAnswers,
     @required this.correctAnswer,
+    @required this.questionnarieId,
     this.timeToAnswer: 0,
     this.onTimeout,
   });
@@ -25,9 +27,29 @@ class _InteractQuestionState extends State<InteractQuestion> with TickerProvider
   AnimationController _timerBarWidthController, _falseAnswersOpacityController;
   Animation _timerBarWidth, _falseAnswersOpacity;
   bool _timeout, _answerSelected;
+  List<InteractQuestion> _interactQuestionsList;
   
   @override
   void initState() {
+    _interactQuestionsList = new List<InteractQuestion>();
+    // DatabaseManager.requestGet('questionnaires/${widget.questionnarieId}', '', 'getQuestionnairesQuestions').then((result){
+    //   result.forEach((obj) {
+    //     DatabaseManager.requestGet('questionnaires/${widget.questionnarieId}/questions/${obj['id']}/answers', '', 'getQuestionnairesQuestionAnswers').then((result){
+    //       _interactQuestionsList.add(InteractQuestion(
+              
+    //           question: obj['name'],
+    //           timeToAnswer: int.parse(obj['time']),
+    //           index: 1,
+    //           totalOfQuestions: int.parse(obj['questions']),
+    //           onTimeout: _handleTimeout,
+    //           totalOfAnswers: 4,
+    //           correctAnswer: 2,
+    //         )
+    //       );
+    //     });
+    //   });        
+    // });
+    
     super.initState();
 
     _timeout = false;
@@ -81,6 +103,7 @@ class _InteractQuestionState extends State<InteractQuestion> with TickerProvider
 
   void _handleAnswerTap(int answerCode) {
     //TODO: Aquí debemos almacenar la respuesta del estudiante.
+    print(answerCode);
     setState(() {
       _answerSelected = true;
     });

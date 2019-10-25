@@ -98,7 +98,7 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
         _scanQR();
       }
     });
-
+    
     _coursePasser.receiver.listen((newCourse){
       if(newCourse != null){
         Map jsonCourse = json.decode(newCourse);

@@ -2,13 +2,17 @@ import 'package:classroom/interact_questions/interact_question.dart';
 import 'package:classroom/stateful_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+
+import '../database_manager.dart';
 // import 'package:flutter_statusbar_manager/flutter_statusbar_manager.dart';
 
 class InteractQuestions extends StatefulWidget {
   final Function onReject;
+  final String courseId;
 
   const InteractQuestions({
     this.onReject,
+    this.courseId,
   });
 
   @override
@@ -25,7 +29,7 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
   Animation<double> _widgetOpacity;
   STATUS _status;
   bool _isWaiting;
-
+  List<InteractQuestion> _interactQuestionsList;
   void _setStatusBarColor() async {
   }
 
@@ -34,6 +38,31 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
     super.initState();
 
     _setStatusBarColor();
+    _interactQuestionsList  = new List<InteractQuestion>();
+    DatabaseManager.requestGet('questionnaires', {"courseId": widget.courseId}, 'getQuestionnaires').then((result){     
+      print(result); 
+      result.forEach((obj) {
+        print(obj);
+        var id = obj['id'];
+        DatabaseManager.requestGet('questionnaires/$id/questions', '', 'getQuestionnaireQuestions').then((questions){
+          int i = 1;
+          questions.forEach((questionObj) {
+            _interactQuestionsList.add(InteractQuestion(
+                questionnarieId: questionObj['id'],
+                question: questionObj['question'],
+                timeToAnswer: questionObj['time'],
+                index: i,
+                totalOfQuestions: 2,
+                onTimeout: _handleTimeout,
+                totalOfAnswers: questionObj['answersCount'],
+                correctAnswer: questionObj['correctAnswer'],
+              )
+            );
+            i = i + 1;
+          });
+        });          
+      });        
+    });
 
     //TODO: Setear esto a true cuando todavía no se haya pasado a la siguiente pregunta
     _isWaiting = false;
@@ -122,15 +151,7 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
                 size: 35,
                 lineWidth: 5,
                 color: Colors.white,
-              ) :  _status == STATUS.ACCEPTED ? InteractQuestion(
-                question: '¿Cuál es la definición correcta de thread?',
-                timeToAnswer: 3,
-                index: 2,
-                totalOfQuestions: 6,
-                onTimeout: _handleTimeout,
-                totalOfAnswers: 4,
-                correctAnswer: 2,
-              ) : Container(),
+              ) :  _status == STATUS.ACCEPTED ? _interactQuestionsList.first : Container(),
             ],
           ),
         ),
