@@ -1,14 +1,9 @@
-// import 'package:flutter/material.dart';
-// import 'package:native_pdf_view/native_pdf_view.dart';
-// import 'package:photo_view/photo_view.dart';
 import 'dart:async';
-import 'dart:math';
 import 'package:classroom/chatbar.dart';
 import 'package:classroom/interact_route.dart';
 import 'package:flutter/material.dart';
 import 'package:native_pdf_renderer/native_pdf_renderer.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-// import 'package:pinch_zoom_image/pinch_zoom_image.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:classroom/widget_passer.dart';
@@ -17,9 +12,11 @@ import 'package:vibration/vibration.dart';
 class Presentation extends StatefulWidget{
   static final WidgetPasser slidePasser = WidgetPasser();
   final String file;
+  final Function(int) onPageChange;
 
   const Presentation({
     @required this.file,
+    @required this.onPageChange,
   });
 
   _PresentationState createState() => _PresentationState();
@@ -49,9 +46,7 @@ class _PresentationState extends State<Presentation> with AutomaticKeepAliveClie
 
     Presentation.slidePasser.receiver.listen((newSlide) {
       if (newSlide != null && this.mounted) {
-        setState(() {
-          _actualPage = int.parse(newSlide) - 1;
-        });
+          handlePageChange(int.parse(newSlide) - 1);
       }
     });
   }
@@ -62,6 +57,14 @@ class _PresentationState extends State<Presentation> with AutomaticKeepAliveClie
     super.dispose();
   }
 
+  void handlePageChange(int page) {
+    setState(() {
+      _actualPage = page;
+    });
+
+    widget.onPageChange(page);
+  }
+
   Future<void> _prepareDocument() async{
     _document = await PDFDocument.openFile(widget.file);
   }
@@ -70,9 +73,9 @@ class _PresentationState extends State<Presentation> with AutomaticKeepAliveClie
   bool get wantKeepAlive => true;
 
   void _changeToSlide(int page){
-    if(!_loading) setState(() {
-      _actualPage = page;
-    });
+    if(!_loading) {
+      handlePageChange(page);
+    }
     if(InteractRoute.questionPositionController.isCompleted) InteractRoute.questionController.add((_actualPage + 1).toString());
   }
 
@@ -107,7 +110,7 @@ class _PresentationState extends State<Presentation> with AutomaticKeepAliveClie
               child: Container(
                 padding: EdgeInsets.only(bottom: 58),
                 child: PhotoView(
-                  imageProvider: (MemoryImage(_pageImage.bytes))
+                  imageProvider: (MemoryImage(_pageImage.bytes)),
                 )
               ),
             ),
@@ -157,12 +160,9 @@ class _PresentationState extends State<Presentation> with AutomaticKeepAliveClie
                       children: <Widget>[
                         Container(
                           margin: EdgeInsets.only(right: 4),
-                          child: Transform.rotate(
-                            angle: pi/4,
-                            child: Icon(
-                              FontAwesomeIcons.thumbtack,
-                              size: 14,
-                            ),
+                          child: Icon(
+                            FontAwesomeIcons.solidSquare,
+                            size: 14,
                           ),
                         ),
                         Text(
