@@ -81,7 +81,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
   Color _titleColor, _color, _actionsColor;
   FocusNode _focusAddBarNodeLessons, _focusAddBarNodeCourses;
   SharedPreferences prefs;
-  bool _resizeScaffold, _showInteractQuestions;
+  bool _resizeScaffold, _showInteractQuestions, _sortQuestionsByPage;
   DateTime selectedDate = DateTime.now();
   //WidgetPasser courseBloc = WidgetPasser();
 
@@ -108,6 +108,8 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
         }
       }
     });
+
+    _sortQuestionsByPage = false;
 
     _navTitle = widget.title;
     _navSubtitle = widget.subtitle;
@@ -651,12 +653,15 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
           margin: EdgeInsets.only(right: 9),
           child: IconButton(
             icon: Icon(
-              FontAwesomeIcons.cube,
+              _sortQuestionsByPage ? FontAwesomeIcons.cubes : FontAwesomeIcons.cube,
               size: 20,
             ),
-            tooltip: 'Ordenar preguntas por diapositiva',
+            tooltip: _sortQuestionsByPage ? 'Mostrar todas las preguntas' : 'Ordenar preguntas por diapositiva',
             onPressed: (){
                 InteractRoute.setQuestionsSort.sender.add('1');
+                setState(() {
+                  _sortQuestionsByPage = !_sortQuestionsByPage;
+                });
             },
           ),
         )

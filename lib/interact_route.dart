@@ -91,7 +91,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
     _setQuestionsSort.receiver.listen((text) {
       print('RECIVIENDO MAMI $text');
       if (text != null) {
-        setState(() {
+        if (this.mounted) setState(() {
           _sortByPage = !_sortByPage;
         });
       }
