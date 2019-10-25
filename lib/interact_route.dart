@@ -21,6 +21,7 @@ class InteractRoute extends StatefulWidget{
   static List<Question> questions;
   static StreamController<String> questionController;
   static WidgetPasser updateQuestions = WidgetPasser(); 
+  static WidgetPasser setQuestionsSort = WidgetPasser();
   static int index = 0;
   final bool owner, isVideo, fileExists;
   final WidgetPasser addBarModePasser;
@@ -45,9 +46,10 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
   Animation<double> _opacityFloat;
   String _questionToAnswer;
   Widget _presentation, _uploadPresentation;
-  WidgetPasser _questionPasser, _pathPasser;
+  WidgetPasser _questionPasser, _pathPasser, _setQuestionsSort;
   ScrollController _scrollController;
-  bool _presentationExist, _presentationLoaded, _lessonDisabled, _courseDisabled, _fileExists;
+  bool _presentationExist, _presentationLoaded, _lessonDisabled, _courseDisabled, _fileExists, _sortByPage;
+  int _presentationActualPage;
 
   Future<String> getFilePath() async {
     String filePath = "";
@@ -73,13 +75,27 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
     _presentationLoaded = false;
     _lessonDisabled = false;
     _courseDisabled = false;
+    _sortByPage = false;
 
     _questionToAnswer = '';
+
+    _presentationActualPage = 0;
 
     _scrollController = ScrollController();
 
     _questionPasser = ChatBar.questionPasser;
     _pathPasser = WidgetPasser();
+
+    _setQuestionsSort = InteractRoute.setQuestionsSort;
+
+    _setQuestionsSort.receiver.listen((text) {
+      print('RECIVIENDO MAMI $text');
+      if (text != null) {
+        setState(() {
+          _sortByPage = !_sortByPage;
+        });
+      }
+    });
 
     InteractRoute.questionOpacityController = AnimationController(
       vsync: this,
@@ -97,48 +113,6 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
     );
 
     InteractRoute.questionOpacityController.forward();
-
-    // Firestore.instance.document("lessons/" + widget.lessonId).snapshots().listen((lesson){
-    //   if(lesson.data['fileExists']){
-    //   String fileType = lesson.data['fileType'];
-    //   print("fileType here: $fileType");
-    //   bool presentation = false;
-    //   if(fileType == "pdf") presentation = true;
-    //     if(this.mounted){
-    //       if(presentation == true){
-    //         if(this.mounted) setState(() {
-    //           _presentationExist = true;
-    //         });
-    //         DatabaseManager.getFiles("pdf", widget.lessonId).then((path){
-    //           print("ARCHIVO:  $path");
-    //           if(path != 'EXCEPTION'){
-    //             if(this.mounted) setState(() {
-    //               _presentation = Presentation(
-    //                 file: path,
-    //               );
-    //               _presentationLoaded = true;
-    //             });
-    //           }else{
-    //             if(this.mounted) setState(() {
-    //               _presentation = Text(
-    //                 'EXCEPCION :c',
-    //               );
-    //               _presentationLoaded = true;
-    //             });
-    //           }
-    //         });
-    //       }else{
-    //         setState(() {
-    //           _presentationLoaded = true;
-    //         });
-    //       }
-    //     }        
-    //   }else{
-    //     setState(() {
-    //       _presentationLoaded = true;
-    //     });        
-    //   }
-    // }); 
 
     showFile();
 
@@ -163,6 +137,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
                           print('PATH: $path');
                           _presentation = Presentation(
                             file: path,
+                            onPageChange: this._handlePresentationPageChange,
                           );
                         });
                       });
@@ -224,6 +199,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
       InteractRoute.index = 0;
       List<DocumentChange> docs = snapshot.documentChanges;
       Question question;
+      
       for(var doc in docs){
         if (doc.type == DocumentChangeType.added){
           question = new Question(
@@ -262,16 +238,6 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
         setState(() {
           _questionToAnswer = text;
         });
-      }
-    });
-
-    InteractRoute.updateQuestions.receiver.listen((code){
-      if(code != null){
-        if(this.mounted){
-          setState(() {
-            
-          });
-        }
       }
     });
 
@@ -316,9 +282,17 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
         setState(() {
           _presentation = Presentation(
             file: path,
+            onPageChange: this._handlePresentationPageChange,
           );
         });
       }
+    });
+  }
+
+  void _handlePresentationPageChange(int page) {
+    print('PAGE: $page');
+    setState(() {
+      _presentationActualPage = page;
     });
   }
 
@@ -326,6 +300,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
   void dispose() {
     _questionPasser.sender.add(null);
     _pathPasser.sender.add(null);
+    _setQuestionsSort.sender.add(null);
     widget.addBarModePasser.sender.add(null);
     InteractRoute.updateQuestions.sender.add(null);
     InteractRoute.index = 0;
@@ -384,10 +359,12 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
         if(index == 0){
           if(widget.isVideo){
             return Container(
-                  child: _getPresentation(context),
-                );
+                key: Key('video'),
+                child: _getPresentation(context),
+              );
           }else{
             return Container(
+              key: Key('presentation'),
               padding: EdgeInsets.symmetric(horizontal: 12),
               width: width,
               height: height + 68,
@@ -395,7 +372,13 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
             );
           }
         }else{
-          return _actualQuestions.elementAt(index - 1);
+          Question _question = _actualQuestions.elementAt(index - 1);
+          
+          if (_sortByPage) {
+            return _question.attachPosition == '${this._presentationActualPage + 1}' ? _question : Container();
+          } else {
+            return _question;
+          }
         }
       },
     );
@@ -494,6 +477,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
               if(this.mounted) setState(() {
                 _presentation = Presentation(
                   file: path,
+                  onPageChange: this._handlePresentationPageChange,
                 );
                 _presentationLoaded = true;
               });

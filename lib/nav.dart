@@ -645,91 +645,108 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
           )
         );
       }
-    }else if(widget.section == 'interact' && widget.owner){
+    }else if(widget.section == 'interact'){
       actions.add(
-        PopupMenuButton<Choice>(
-          onSelected: (choice){
-            if(choice.title == 'Eliminar'){
-              print('ELIMINAR LECCION: ${widget.lessonId}');
-              print('DEL CURSO: ${widget.courseId}');
-              DatabaseManager.deleteLesson(widget.lessonId,widget.courseId);
-              //TODO: Eliminar la leccion de firebase.
-            }else if(choice.title == 'Fecha'){
-              _selectDate(context);
-            }else if(choice.title == 'Descripción'){
-              final status = _addBarController.status;
-              if(status == AnimationStatus.completed){
-                _addBarController.reverse(
-                  from: 1
-                ).then((val){
-                  if(_addBarAlertController.status != AnimationStatus.dismissed){
-                    _addBarAlertController.reverse();
-                  }
-                });
-                ChatBar.chatBarOffsetController.reverse().then((value){
-                  InteractRoute.questionOpacityController.reverse();
-                });
-                FocusScope.of(context).requestFocus(new FocusNode());
-              }else if(status == AnimationStatus.dismissed){
-                  setState(() {
-                    Nav.addBarTitle = 'Ingrese la nueva descripción';
-                    Nav.addBarMode = AddBarMode.CHANGE_DESCRIPTION;
-                  });
-                  _addBarController.forward(
-                    from: 0
-                  );
-                  ChatBar.chatBarOffsetController.forward();
-                  InteractRoute.questionOpacityController.forward();
-                  FocusScope.of(context).requestFocus(_getFocusNode());
-                }
-            }else if(choice.title == 'Nombre'){
-              final status = _addBarController.status;
-              if(status == AnimationStatus.completed){
-                _addBarController.reverse(
-                  from: 1
-                ).then((val){
-                  if(_addBarAlertController.status != AnimationStatus.dismissed){
-                    _addBarAlertController.reverse();
-                  }
-                });
-                ChatBar.chatBarOffsetController.reverse().then((value){
-                  InteractRoute.questionOpacityController.reverse();
-                });
-                FocusScope.of(context).requestFocus(new FocusNode());
-              }else if(status == AnimationStatus.dismissed){
-                  setState(() {
-                    Nav.addBarTitle = 'Ingrese el nuevo nombre';
-                    Nav.addBarMode = AddBarMode.CHANGE_NAME;
-                  });
-                  _addBarController.forward(
-                    from: 0
-                  );
-                  ChatBar.chatBarOffsetController.forward();
-                  InteractRoute.questionOpacityController.forward();
-                  FocusScope.of(context).requestFocus(_getFocusNode());
-                }
-            }
-          },
-          itemBuilder: (BuildContext context) {
-            return choices.skip(0).map((Choice choice) {
-              return PopupMenuItem<Choice>(
-                value: choice,
-                child: Container(
-                  child: Row(
-                    children: <Widget>[
-                      Container(
-                        child: Text(
-                          choice.title,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList();
-          },
+        Container(
+          margin: EdgeInsets.only(right: 9),
+          child: IconButton(
+            icon: Icon(
+              FontAwesomeIcons.cube,
+              size: 20,
+            ),
+            tooltip: 'Ordenar preguntas por diapositiva',
+            onPressed: (){
+                InteractRoute.setQuestionsSort.sender.add('1');
+            },
+          ),
         )
       );
+      if (widget.owner) {
+        actions.add(
+          PopupMenuButton<Choice>(
+            onSelected: (choice){
+              if(choice.title == 'Eliminar'){
+                print('ELIMINAR LECCION: ${widget.lessonId}');
+                print('DEL CURSO: ${widget.courseId}');
+                DatabaseManager.deleteLesson(widget.lessonId,widget.courseId);
+                //TODO: Eliminar la leccion de firebase.
+              }else if(choice.title == 'Fecha'){
+                _selectDate(context);
+              }else if(choice.title == 'Descripción'){
+                final status = _addBarController.status;
+                if(status == AnimationStatus.completed){
+                  _addBarController.reverse(
+                    from: 1
+                  ).then((val){
+                    if(_addBarAlertController.status != AnimationStatus.dismissed){
+                      _addBarAlertController.reverse();
+                    }
+                  });
+                  ChatBar.chatBarOffsetController.reverse().then((value){
+                    InteractRoute.questionOpacityController.reverse();
+                  });
+                  FocusScope.of(context).requestFocus(new FocusNode());
+                }else if(status == AnimationStatus.dismissed){
+                    setState(() {
+                      Nav.addBarTitle = 'Ingrese la nueva descripción';
+                      Nav.addBarMode = AddBarMode.CHANGE_DESCRIPTION;
+                    });
+                    _addBarController.forward(
+                      from: 0
+                    );
+                    ChatBar.chatBarOffsetController.forward();
+                    InteractRoute.questionOpacityController.forward();
+                    FocusScope.of(context).requestFocus(_getFocusNode());
+                  }
+              }else if(choice.title == 'Nombre'){
+                final status = _addBarController.status;
+                if(status == AnimationStatus.completed){
+                  _addBarController.reverse(
+                    from: 1
+                  ).then((val){
+                    if(_addBarAlertController.status != AnimationStatus.dismissed){
+                      _addBarAlertController.reverse();
+                    }
+                  });
+                  ChatBar.chatBarOffsetController.reverse().then((value){
+                    InteractRoute.questionOpacityController.reverse();
+                  });
+                  FocusScope.of(context).requestFocus(new FocusNode());
+                }else if(status == AnimationStatus.dismissed){
+                    setState(() {
+                      Nav.addBarTitle = 'Ingrese el nuevo nombre';
+                      Nav.addBarMode = AddBarMode.CHANGE_NAME;
+                    });
+                    _addBarController.forward(
+                      from: 0
+                    );
+                    ChatBar.chatBarOffsetController.forward();
+                    InteractRoute.questionOpacityController.forward();
+                    FocusScope.of(context).requestFocus(_getFocusNode());
+                  }
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return choices.skip(0).map((Choice choice) {
+                return PopupMenuItem<Choice>(
+                  value: choice,
+                  child: Container(
+                    child: Row(
+                      children: <Widget>[
+                        Container(
+                          child: Text(
+                            choice.title,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList();
+            },
+          )
+        );
+      }
     }
     // if(false && widget.notificationsActive){
     //   actions.add(
