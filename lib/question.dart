@@ -15,11 +15,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Question extends StatefulWidget {
   static WidgetPasser answerPasser, answeredPasser;
   static String globalQuestionId;
-  final String text, author, authorId, questionId, lessonId, attachPosition;
+  final String text, author, authorId, questionId, lessonId, attachPosition, courseId;
   final bool isVideo;
   String courseAuthorId;
   bool voted, mine, answered, owner;
-  int votes, index, day, month, year, hours, minutes;
+  int votesLength, index, day, month, year, hours, minutes;
   StreamController<int> votesController;
   
 
@@ -27,6 +27,7 @@ class Question extends StatefulWidget {
     @required this.text,
     @required this.author,
     @required this.authorId,
+    @required this.courseId,
     @required this.questionId,
     @required this.lessonId,
     @required this.isVideo,
@@ -36,7 +37,7 @@ class Question extends StatefulWidget {
     this.voted: false,
     this.answered: false,
     this.owner: false,
-    this.votes: 0,
+    this.votesLength: 0,
     this.index: 0,
     this.day: 27,
     this.month: 3,
@@ -206,7 +207,7 @@ class _QuestionState extends State<Question>
     _boxResizeOpacityController2.forward();
     if (widget.answered) _boxResizeOpacityController.forward();
 
-    Firestore.instance.collection("lessons").document(widget.lessonId).collection("questions").document(widget.questionId).collection("answers").orderBy("votes", descending: true).snapshots().listen((snapshot) async{
+    Firestore.instance.collection("lessons").document(widget.lessonId).collection("questions").document(widget.questionId).collection("answers").orderBy("votesLength", descending: true).snapshots().listen((snapshot) async{
       InteractRoute.index = 0;
       List<DocumentChange> docs = snapshot.documentChanges;
       Answer answer;
@@ -221,7 +222,7 @@ class _QuestionState extends State<Question>
             authorId: doc.document['authorId'],
             lessonId: widget.lessonId,
             questionText: doc.document['questionText'],            
-            votes: doc.document['votes'],
+            votesLength: doc.document['votesLength'],
             mine: (doc.document['authorId'] == Auth.uid)
             // day: answer['day'],
             // month: answer['month'],
@@ -237,7 +238,7 @@ class _QuestionState extends State<Question>
             // }
             answer.owner = true;
           } 
-          List<String> lista = List<String>.from(doc.document['usersVote']); 
+          List<String> lista = List<String>.from(doc.document['votes']); 
           if(lista.contains(Auth.uid)) answer.voted = true;        
           if(this.mounted){
             setState(() {
@@ -265,7 +266,7 @@ class _QuestionState extends State<Question>
               questionText: jsonAnswer['questionText'],
               owner: jsonAnswer['owner'],
               voted: false,
-              votes: 0,
+              votesLength: 0,
             ));
           });
         }
@@ -703,6 +704,7 @@ class _QuestionState extends State<Question>
                                             ChatBar.questionText = widget.text;
                                             if(InteractRoute.questionPositionController.status == AnimationStatus.dismissed || InteractRoute.questionPositionController.status == AnimationStatus.reverse){
                                               InteractRoute.questionController.add(widget.text);
+                                              InteractRoute.questionId = widget.questionId;
                                               InteractRoute.questionPositionController.forward();
                                               _expandAnswersController.forward();
                                               Question.answerPasser = _answerPasser;
@@ -778,17 +780,18 @@ class _QuestionState extends State<Question>
                 margin: EdgeInsets.only(right: 3),
                 child: Vote(
                   voted: widget.voted,
-                  votes: widget.votes,
+                  votesLength: widget.votesLength,
                   onVote: (){
                     DatabaseManager.addVoteToQuestion(widget.lessonId, Auth.uid, widget.questionId, "1");
                     InteractRoute.questions.replaceRange(widget.index, widget.index + 1, [Question(
                       lessonId: widget.lessonId,
                       questionId: widget.questionId,
+                      courseId: widget.courseId,
                       authorId: widget.authorId,
                       author: widget.author,
                       text: widget.text,
                       voted: true,
-                      votes: widget.votes + 1,
+                      votesLength: widget.votesLength + 1,
                       index: widget.index,
                       mine: widget.mine,
                       votesController: widget.votesController,
@@ -801,11 +804,12 @@ class _QuestionState extends State<Question>
                     InteractRoute.questions.replaceRange(widget.index, widget.index + 1, [Question(
                       lessonId: widget.lessonId,
                       authorId: widget.authorId,
+                      courseId: widget.courseId,
                       questionId: widget.questionId,
                       author: widget.author,
                       text: widget.text,
                       voted: false,
-                      votes: widget.votes - 1,
+                      votesLength: widget.votesLength - 1,
                       index: widget.index,
                       mine: widget.mine,
                       votesController: widget.votesController,

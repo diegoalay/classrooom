@@ -102,7 +102,7 @@ class _InteractQuestionState extends State<InteractQuestion> with TickerProvider
   }
 
   void _handleAnswerTap(int answerCode) {
-    //TODO: Aquí debemos almacenar la respuesta del estudiante.
+    print('presiono: $answerCode');
     print(answerCode);
     setState(() {
       _answerSelected = true;

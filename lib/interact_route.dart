@@ -25,6 +25,7 @@ class InteractRoute extends StatefulWidget{
   static int index = 0;
   final bool owner, isVideo, fileExists;
   final WidgetPasser addBarModePasser;
+  static String questionId;
   
   InteractRoute({
     @required this.lessonId,
@@ -89,8 +90,8 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
     _setQuestionsSort = InteractRoute.setQuestionsSort;
 
     _setQuestionsSort.receiver.listen((text) {
-      print('RECIVIENDO MAMI $text');
       if (text != null) {
+        print(text);
         if(this.mounted){
           setState(() {
             _sortByPage = !_sortByPage;
@@ -197,7 +198,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
       ),
     );
 
-    Firestore.instance.collection("lessons").document(widget.lessonId).collection("questions").orderBy("votes", descending: true).snapshots().listen((snapshot) async{
+    Firestore.instance.collection("lessons").document(widget.lessonId).collection("questions").orderBy("votesLength", descending: true).snapshots().listen((snapshot) async{
       InteractRoute.index = 0;
       List<DocumentChange> docs = snapshot.documentChanges;
       Question question;
@@ -207,6 +208,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
           question = new Question(
             lessonId: widget.lessonId,
             questionId: doc.document.documentID,
+            courseId: doc.document.data['courseId'],
             text: doc.document.data['text'],
             author: doc.document.data['author'],
             authorId: doc.document.data['authorId'],
@@ -215,13 +217,13 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
             year: doc.document.data['year'],
             hours: doc.document.data['hours'],
             minutes: doc.document.data['minutes'],                
-            votes: doc.document.data['votes'],
+            votesLength: doc.document.data['votesLength'],
             attachPosition: doc.document.data['attachPosition'],
             isVideo: widget.isVideo,
             index: InteractRoute.index++,
           );
           if(question.authorId == Auth.uid) question.mine = true;
-          List<String> lista = List<String>.from(doc.document['usersVote']); 
+          List<String> lista = List<String>.from(doc.document['votes']); 
           if(lista.contains(Auth.uid)) question.voted = true;  
           question.courseAuthorId = widget.authorId;
           if(this.mounted){
@@ -236,6 +238,8 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
     });
 
     _questionStream.listen((text) {
+      print('TAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP HERE $text');
+      print(InteractRoute.questionId);
       if(text != null){
         setState(() {
           _questionToAnswer = text;
@@ -252,6 +256,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
               Question(
                 lessonId: widget.lessonId,
                 authorId: jsonQuestion['authorId'],
+                courseId: jsonQuestion['courseId'],
                 questionId: jsonQuestion['questionId'],
                 courseAuthorId: jsonQuestion['courseAuthorId'],
                 text: jsonQuestion['text'],
@@ -436,6 +441,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
             ),
           ),
           ChatBar(
+            courseId: widget.courseId,
             lessonId: widget.lessonId,
             owner: widget.owner,
             questionToAnswer: _questionToAnswer,

@@ -18,7 +18,7 @@ class DatabaseManager{
   static StorageReference storageRef = FirebaseStorage.instance.ref();
   static Directory tempDir = Directory.systemTemp;
   static FirebaseMessaging _fcm = FirebaseMessaging();
-  static String serverIp = '10.1.3.71:8080';
+  static String serverIp = '192.168.43.90:8080';
   static FirebaseMessaging getFcm(){
     return _fcm;
   }
@@ -93,24 +93,27 @@ class DatabaseManager{
 
 
   static void removeVoteToQuestion(String lessonId, String authorId, String question, String val){
-    updateQuestion(lessonId,question,val,"votesAndUsersVote", authorId);
+    updateQuestion(lessonId,question,val,"votesLengthAndVotes", authorId);
   }
 
   static void addVoteToQuestion(String lessonId, String authorId, String question, String val){   
-    updateQuestion(lessonId,question,val,"votesAndUsersVote", authorId);
+    updateQuestion(lessonId,question,val,"votesLengthAndVotes", authorId);
   }
 
   static void removeVoteToAnswer(String lessonId, String authorId, String question, String answer, String val){
-    updateAnswer(lessonId,question,answer,val,"votesAndUsersVote", authorId);
+    updateAnswer(lessonId,question,answer,val,"votesLengthAndVotes", authorId);
   }
 
   static void addVoteToAnswer(String lessonId, String authorId, String question, String answer, String val){
-    updateAnswer(lessonId,question,answer,val,"votesAndUsersVote", authorId);
+    updateAnswer(lessonId,question,answer,val,"votesLengthAndVotes", authorId);
   }
 
-  static Future<String> addAnswers(String question, String author, String authorId, String lesson, String text, int day, int month, int year, int hours, int minutes, String createdById, String createdByName, String questionText) async{
+  static Future<String> addAnswers(String question, String author, String authorId, String courseId, String lesson, String questionId, String text, int day, int month, int year, int hours, int minutes, String createdById, String createdByName, String questionText) async{
     DocumentReference reference = Firestore.instance.collection('lessons').document(lesson);
     await reference.collection("questions").document(question).collection("answers").document().setData({
+      'courseId': courseId,
+      'lessonId': lesson,
+      'questionId': questionId,
       'text': text,
       'questionText': questionText,
       'author': author,
@@ -122,28 +125,30 @@ class DatabaseManager{
       'year': year,
       'hours': hours,
       'minutes': minutes,
-      'votes': 0,
-      'usersVote': []
+      'votesLength': 0,
+      'votes': []
     }).then((_){
       updateQuestion(lesson, question, "1", "comments", "");
     });
     return reference.documentID;
   }
 
-  static Future<String> addQuestions(String author, String authorId, String lesson, String text, int day, int month, int year, int hours, int minutes, {String attachPosition = ''}) async{
+  static Future<String> addQuestions(String author, String authorId, String courseId, String lesson, String text, int day, int month, int year, int hours, int minutes, {String attachPosition = ''}) async{
     DocumentReference reference = Firestore.instance.collection('lessons').document(lesson);
     reference.collection("questions").document().setData({
       'text': text,
       'author': author,
+      'lessonId': lesson,
+      'courseId': courseId,
       'authorId': authorId,
       'day': day,
       'month': month,
       'year': year,
       'hours': hours,
       'minutes': minutes,
-      'votes': 0,
+      'votesLength': 0,
       'attachPosition': attachPosition,
-      'usersVote': [],
+      'votes': [],
     }).then((_){
       updateLesson(lesson,"1","comments","","");
     });
@@ -225,7 +230,7 @@ class DatabaseManager{
 
   static Future<void> deleteLesson(String lessonId,String courseId) async{
     await deleteDocumentInCollection("lessons", lessonId).then((_){
-      updateCourse(courseId, "-1", "lessons");
+      updateCourse(courseId, "-1", "lessonsLength");
       deleteFromArray("lessonsPerCourse", courseId, "lessons", lessonId);
     });
   } 
@@ -260,7 +265,7 @@ class DatabaseManager{
       'comments' : 0
     }).then((_){
       addLessonPerCourse(lesson.documentID,course);
-      updateCourse(course,"1","lessons");
+      updateCourse(course,"1","lessonsLength");
     });
     return lesson.documentID;
   }
@@ -272,7 +277,7 @@ class DatabaseManager{
       'author': author,
       'authorId': authorId,
       'participants': 1,
-      'lessons' : 0,
+      'lessonsLength' : 0,
     }).then((_){
       addCoursesPerUser(authorId,course.documentID);
       addUsersPerCourse(course.documentID,authorId);
@@ -285,16 +290,16 @@ class DatabaseManager{
     DocumentReference reference = Firestore.instance.document('lessons/' + lesson + "/questions/" + question + "/answers/" + answer);
     await Firestore.instance.runTransaction((Transaction transaction) async {
       switch(column){
-        case "votes": {
-          transaction.update(reference, <String, dynamic>{'votes': FieldValue.increment(int.parse(param))});      
+        case "votesLength": {
+          transaction.update(reference, <String, dynamic>{'votesLength': FieldValue.increment(int.parse(param))});      
           break;
         }
-        case "votesAndUsersVote": {
+        case "votesLengthAndVotes": {
           DocumentSnapshot snapshot = await transaction.get(reference);
-          List<String> list = List<String>.from(snapshot.data['usersVote']);
+          List<String> list = List<String>.from(snapshot.data['votes']);
           if(param == "-1") list.remove(uid);
           else list.add(uid);
-          transaction.update(reference, <String, dynamic>{'votes': FieldValue.increment(int.parse(param)), 'usersVote': list});      
+          transaction.update(reference, <String, dynamic>{'votesLength': FieldValue.increment(int.parse(param)), 'votes': list});      
           break;
         }        
         default: {
@@ -356,16 +361,16 @@ class DatabaseManager{
     DocumentReference reference = Firestore.instance.document('lessons/' + lesson + "/questions/" + question);
     Firestore.instance.runTransaction((Transaction transaction) async {
       switch(column){
-        case "votes": {
-          transaction.update(reference, <String, dynamic>{'votes': FieldValue.increment(int.parse(param))});   
+        case "votesLength": {
+          transaction.update(reference, <String, dynamic>{'votesLength': FieldValue.increment(int.parse(param))});   
           break;
         }
-        case "votesAndUsersVote": {
+        case "votesLengthAndVotes": {
           DocumentSnapshot snapshot = await transaction.get(reference);
-          List<String> list = List<String>.from(snapshot.data['usersVote']);
+          List<String> list = List<String>.from(snapshot.data['votes']);
           if(param == "-1") list.remove(uid);
           else list.add(uid);
-          transaction.update(reference, <String, dynamic>{'votes': FieldValue.increment(int.parse(param)), 'usersVote': list});      
+          transaction.update(reference, <String, dynamic>{'votesLength': FieldValue.increment(int.parse(param)), 'votes': list});      
           break;
         }          
         default: {
@@ -401,7 +406,7 @@ class DatabaseManager{
     Firestore.instance.runTransaction((Transaction transaction) async {
         switch(column){
           case "participants":
-          case "lessons": {
+          case "lessonsLength": {
             transaction.update(reference, <String, dynamic>{column: FieldValue.increment(int.parse(param))});      
             break;
           }
@@ -453,7 +458,7 @@ class DatabaseManager{
   static Future<List<Answer>> getAnswersPerQuestionByList(String lessonId, String questionId) async{
     List<Answer> answersList = new List<Answer>(); 
     CollectionReference reference = Firestore.instance.collection('lessons').document(lessonId).collection("questions").document(questionId).collection("answers");
-    await reference.orderBy("votes", descending: true).getDocuments().then((snapshot){
+    await reference.orderBy("votesLength", descending: true).getDocuments().then((snapshot){
       List<DocumentSnapshot> docs = snapshot.documents;
       for(var doc in docs){
         answersList.add(
@@ -470,7 +475,8 @@ class DatabaseManager{
             // year: doc['year'],
             // hours: doc['hours'],
             // minutes: doc['minutes'],                
-            votes: doc['votes'],
+            votesLength: doc['votesLength'],
+            
           )
         );  
       }
@@ -516,7 +522,7 @@ class DatabaseManager{
               Course(
                 courseId: course['id'],
                 participants: course['participants'],
-                lessons: course['lessons'],
+                lessonsLength: course['lessonsLength'],
                 name: course['name'],
                 author: course['author'],
                 authorId: course['authorId'],

@@ -111,7 +111,7 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
                 name: jsonCourse['name'],
                 author: jsonCourse['author'],
                 authorId: jsonCourse['authorId'],
-                lessons: jsonCourse['lessons'],
+                lessonsLength: jsonCourse['lessonsLength'],
                 owner: jsonCourse['owner'],
               )
             );

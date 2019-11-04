@@ -13,14 +13,14 @@ class Course extends StatefulWidget{
 
   final String name, author, courseId, authorId;
   final Color color;
-  final int lessons, participants;
+  final int lessonsLength, participants;
   final bool owner;
 
   const Course({
     @required this.name,
     @required this.author,
     @required this.authorId, 
-    @required this.lessons,
+    @required this.lessonsLength,
     @required this.participants,
     @required this.courseId,
     this.color,
@@ -61,7 +61,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
     });
 
     _participants = '${widget.participants}';
-    _lessons = '${widget.lessons}';
+    _lessons = '${widget.lessonsLength}';
     _name = '${widget.name}';
 
     _disabled = false;
@@ -107,7 +107,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
         if(this.mounted){
           setState(() {
             _name = value['name'];
-            _lessons = value['lessons'].toString();
+            _lessons = value['lessonsLength'].toString();
             _participants = value['participants'].toString();
           });
         } 
@@ -201,7 +201,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
               return Nav(
                 owner: widget.owner,
                 preferredSize: 65,
-                section: 'lessons',
+                section: 'lessonsLength',
                 title: 'LECCIONES',
                 subtitle: _name,
                 courseId: widget.courseId,
