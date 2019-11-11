@@ -38,6 +38,8 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
   void initState() {
     super.initState();
 
+    print('HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE');
+
     _setStatusBarColor();
     _interactQuestionsList  = new List<InteractQuestion>();
       print(widget.courseId);
