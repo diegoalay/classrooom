@@ -1,8 +1,7 @@
-import 'package:classroom/database_manager.dart';
 import 'package:classroom/interact_questions/interact_answer.dart';
 import 'package:classroom/interact_questions/page_indicator.dart';
 import 'package:flutter/material.dart';
-
+import '../database_manager.dart';
 class InteractQuestion extends StatefulWidget {
   final String question, questionnarieId;
   final int timeToAnswer, index, totalOfQuestions, totalOfAnswers, correctAnswer;
@@ -32,23 +31,24 @@ class _InteractQuestionState extends State<InteractQuestion> with TickerProvider
   @override
   void initState() {
     _interactQuestionsList = new List<InteractQuestion>();
-    // DatabaseManager.requestGet('questionnaires/${widget.questionnarieId}', '', 'getQuestionnairesQuestions').then((result){
-    //   result.forEach((obj) {
-    //     DatabaseManager.requestGet('questionnaires/${widget.questionnarieId}/questions/${obj['id']}/answers', '', 'getQuestionnairesQuestionAnswers').then((result){
-    //       _interactQuestionsList.add(InteractQuestion(
+    DatabaseManager.requestGet('questionnaires/${widget.questionnarieId}', '', 'getQuestionnairesQuestions').then((result){
+      result.forEach((obj) {
+        DatabaseManager.requestGet('questionnaires/${widget.questionnarieId}/questions/${obj['id']}/answers', '', 'getQuestionnairesQuestionAnswers').then((result){
+          print(obj);
+          // _interactQuestionsList.add(InteractQuestion(
               
-    //           question: obj['name'],
-    //           timeToAnswer: int.parse(obj['time']),
-    //           index: 1,
-    //           totalOfQuestions: int.parse(obj['questions']),
-    //           onTimeout: _handleTimeout,
-    //           totalOfAnswers: 4,
-    //           correctAnswer: 2,
-    //         )
-    //       );
-    //     });
-    //   });        
-    // });
+          //     question: obj['name'],
+          //     timeToAnswer: int.parse(obj['time']),
+          //     index: 1,
+          //     totalOfQuestions: int.parse(obj['questions']),
+          //     onTimeout: _handleTimeout,
+          //     totalOfAnswers: 4,
+          //     correctAnswer: 2,
+          //   )
+          // );
+        });
+      });        
+    });
     
     super.initState();
 

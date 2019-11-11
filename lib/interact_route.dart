@@ -218,7 +218,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
             hours: doc.document.data['hours'],
             minutes: doc.document.data['minutes'],                
             votesLength: doc.document.data['votesLength'],
-            attachPosition: doc.document.data['attachPosition'],
+            attachment: doc.document.data['attachment'],
             isVideo: widget.isVideo,
             index: InteractRoute.index++,
           );
@@ -382,7 +382,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
           Question _question = _actualQuestions.elementAt(index - 1);
           
           if (_sortByPage) {
-            return _question.attachPosition == '${this._presentationActualPage + 1}' ? _question : Container();
+            return _question.attachment == '${this._presentationActualPage + 1}' ? _question : Container();
           } else {
             return _question;
           }

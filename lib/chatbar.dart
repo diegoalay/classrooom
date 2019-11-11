@@ -122,7 +122,7 @@ class _ChatBarState extends State<ChatBar> with SingleTickerProviderStateMixin{
         });        
       }else if(ChatBar.mode == ChatBarMode.QUESTION_WITH_POSITION){
         print("atach: ${widget.questionToAnswer}");
-        DatabaseManager.addQuestions(author, authorId, widget.courseId, widget.lessonId, val, day, month, year, hours, minutes, attachPosition: widget.questionToAnswer).then((id){ 
+        DatabaseManager.addQuestions(author, authorId, widget.courseId, widget.lessonId, val, day, month, year, hours, minutes, attachment: widget.questionToAnswer).then((id){ 
           InteractRoute.questionPositionController.reverse();      
         });
       }

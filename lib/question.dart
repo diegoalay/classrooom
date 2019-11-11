@@ -15,11 +15,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Question extends StatefulWidget {
   static WidgetPasser answerPasser, answeredPasser;
   static String globalQuestionId;
-  final String text, author, authorId, questionId, lessonId, attachPosition, courseId;
+  final String text, author, authorId, questionId, lessonId, courseId;
   final bool isVideo;
   String courseAuthorId;
   bool voted, mine, answered, owner;
   int votesLength, index, day, month, year, hours, minutes;
+  var attachment;
   StreamController<int> votesController;
   
 
@@ -44,7 +45,7 @@ class Question extends StatefulWidget {
     this.year: 1998,
     this.hours: 11,
     this.minutes: 55,
-    this.attachPosition: '',
+    this.attachment: '',
   });
 
   
@@ -430,15 +431,15 @@ class _QuestionState extends State<Question>
       }
     });
 
-    // if(widget.isVideo && YouTubeVideo.videoSeekToPasser != null) YouTubeVideo.videoSeekToPasser.sender.add(widget.attachPosition);
+    // if(widget.isVideo && YouTubeVideo.videoSeekToPasser != null) YouTubeVideo.videoSeekToPasser.sender.add(widget.attachment);
     // else if(Presentation.slidePasser != null) {
-    //   Presentation.slidePasser.sender.add(widget.attachPosition);
+    //   Presentation.slidePasser.sender.add(widget.attachment);
     // }
   }
 
   Widget _getAttachPosition(){
     if(!widget.mine){
-      if(widget.attachPosition != ''){
+      if(widget.attachment != ''){
         return Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
@@ -446,7 +447,7 @@ class _QuestionState extends State<Question>
             Container(
               margin: EdgeInsets.only(left: 3),
               child: Text(
-                widget.attachPosition,
+                widget.attachment,
                 style: TextStyle(
                   color: Theme.of(context).primaryColor,
                 ),
@@ -456,7 +457,7 @@ class _QuestionState extends State<Question>
         );
       }else return Container();
     }else{
-      if(widget.attachPosition != ''){
+      if(widget.attachment != ''){
         return Row(
           children: <Widget>[
             Expanded(
@@ -482,7 +483,7 @@ class _QuestionState extends State<Question>
                         Container(
                           margin: EdgeInsets.only(left: 3),
                           child: Text(
-                            widget.attachPosition,
+                            widget.attachment,
                             style: TextStyle(
                               color: Theme.of(context).primaryColor,
                             ),

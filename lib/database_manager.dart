@@ -133,7 +133,7 @@ class DatabaseManager{
     return reference.documentID;
   }
 
-  static Future<String> addQuestions(String author, String authorId, String courseId, String lesson, String text, int day, int month, int year, int hours, int minutes, {String attachPosition = ''}) async{
+  static Future<String> addQuestions(String author, String authorId, String courseId, String lesson, String text, int day, int month, int year, int hours, int minutes, {String attachment = ''}) async{
     DocumentReference reference = Firestore.instance.collection('lessons').document(lesson);
     reference.collection("questions").document().setData({
       'text': text,
@@ -147,7 +147,7 @@ class DatabaseManager{
       'hours': hours,
       'minutes': minutes,
       'votesLength': 0,
-      'attachPosition': attachPosition,
+      'attachment': attachment,
       'votes': [],
     }).then((_){
       updateLesson(lesson,"1","comments","","");

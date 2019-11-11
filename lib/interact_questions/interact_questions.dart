@@ -1,8 +1,9 @@
 import 'package:classroom/interact_questions/interact_question.dart';
 import 'package:classroom/stateful_button.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-
+import 'package:classroom/database_manager.dart';
 import '../database_manager.dart';
 // import 'package:flutter_statusbar_manager/flutter_statusbar_manager.dart';
 
@@ -39,30 +40,47 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
 
     _setStatusBarColor();
     _interactQuestionsList  = new List<InteractQuestion>();
-    DatabaseManager.requestGet('questionnaires', {"courseId": widget.courseId}, 'getQuestionnaires').then((result){     
-      print(result); 
-      result.forEach((obj) {
-        print(obj);
-        var id = obj['id'];
-        DatabaseManager.requestGet('questionnaires/$id/questions', '', 'getQuestionnaireQuestions').then((questions){
-          int i = 1;
-          questions.forEach((questionObj) {
-            _interactQuestionsList.add(InteractQuestion(
-                questionnarieId: questionObj['id'],
-                question: questionObj['question'],
-                timeToAnswer: questionObj['time'],
-                index: i,
-                totalOfQuestions: 2,
-                onTimeout: _handleTimeout,
-                totalOfAnswers: questionObj['answersCount'],
-                correctAnswer: questionObj['correctAnswer'],
-              )
-            );
-            i = i + 1;
-          });
-        });          
-      });        
+      print(widget.courseId);
+      Firestore.instance.collection("questionnaires").where('courseId', isEqualTo: widget.courseId).snapshots().listen((snapshot){
+      List<DocumentChange> docs = snapshot.documentChanges;
+      if(docs != null){
+        for(var doc in docs){
+          if(doc.type == DocumentChangeType.added){
+            print('search $doc');
+          }else if (doc.type == DocumentChangeType.modified){
+            print('edit $doc');
+          }else if(doc.type == DocumentChangeType.removed){
+            
+          }
+        }
+      }
     });
+
+    // DatabaseManager.requestGet('questionnaires', {"courseId": widget.courseId}, 'getQuestionnaires').then((result){     
+    //   print(result); 
+    //   result.forEach((obj) {
+    //     print(obj);
+    //     var id = obj['id'];
+    //     DatabaseManager.requestGet('questionnaires/$id/questions', '', 'getQuestionnaireQuestions').then((questions){
+    //       int i = 1;
+    //       questions.forEach((questionObj) {
+    //         _interactQuestionsList.add(InteractQuestion(
+    //             questionnarieId: questionObj['id'],
+    //             question: questionObj['question'],
+    //             timeToAnswer: questionObj['time'],
+    //             index: i,
+    //             totalOfQuestions: 2,
+    //             onTimeout: _handleTimeout,
+    //             totalOfAnswers: questionObj['answersCount'],
+    //             correctAnswer: questionObj['correctAnswer'],
+    //           )
+    //         );
+    //         i = i + 1;
+    //       });
+    //     });          
+    //   });        
+    // });
+
 
     //TODO: Setear esto a true cuando todavía no se haya pasado a la siguiente pregunta
     _isWaiting = false;
