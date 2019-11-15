@@ -5,16 +5,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:classroom/database_manager.dart';
-import '../database_manager.dart';
+import 'package:classroom/auth.dart';
 // import 'package:flutter_statusbar_manager/flutter_statusbar_manager.dart';
 
 class InteractQuestions extends StatefulWidget {
   final Function onReject;
   final Map<dynamic,dynamic> questionnaire;
+  final String questionnaireId;
 
   const InteractQuestions({
     this.onReject,
     this.questionnaire,
+    this.questionnaireId, 
   });
 
   @override
@@ -32,6 +34,9 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
   STATUS _status;
   bool _isWaiting;
   List<InteractQuestion> _interactQuestionsList;
+  int _questionnaireIndex;
+  int _questionnaireStatus;
+
   void _setStatusBarColor() async {
   }
 
@@ -42,31 +47,17 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
 
     _setStatusBarColor();
     _interactQuestionsList  = new List<InteractQuestion>();
-    // DatabaseManager.requestGet('questionnaires', {"courseId": widget.courseId}, 'getQuestionnaires').then((result){     
-    //   print(result); 
-    //   result.forEach((obj) {
-    //     print(obj);
-    //     var id = obj['id'];
-    //     DatabaseManager.requestGet('questionnaires/$id/questions', '', 'getQuestionnaireQuestions').then((questions){
-    //       int i = 1;
-    //       questions.forEach((questionObj) {
-    //         _interactQuestionsList.add(InteractQuestion(
-    //             questionnarieId: questionObj['id'],
-    //             question: questionObj['quest ion'],
-    //             timeToAnswer: questionObj['time'],
-    //             index: i,
-    //             questionsLength: 2,
-    //             onTimeout: _handleTimeout,
-    //             totalOfAnswers: questionObj['answersLength'],
-    //             correctAnswer: questionObj['correctAnswer'],
-    //           )
-    //         );
-    //         i = i + 1;
-    //       });
-    //     });          
-    //   });        
-    // });
 
+    //HENRY
+    Firestore.instance.collection("questionnair").document(widget.questionnaireId).snapshots().listen((snapshot){
+      var value = snapshot.data;
+      if(this.mounted){
+        setState(() {
+          _questionnaireIndex = value['index'];
+          _questionnaireStatus = value['status'];
+        });
+      } 
+    });
 
     //TODO: Setear esto a true cuando todavía no se haya pasado a la siguiente pregunta
     _isWaiting = false;
@@ -89,7 +80,9 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
     _widgetOpacityController.forward();
   }
 
+
   void _handleAcceptTap() {
+    // DatabaseManager.updateQuestionnaire(widget.questionnaire['questionnaireId'], Auth.uid, 'users');
     setState(() {
       _status = STATUS.ACCEPTED;
     });
@@ -107,6 +100,7 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
   }
 
   void handleGetQuestions(){
+    // HENRY: ESTRUCTURA
     print(widget.questionnaire['questionnaireId']);
     Firestore.instance.collection('questionnaires/${widget.questionnaire['questionnaireId']}/questions').snapshots().listen((snapshot){
       List<DocumentChange> docs = snapshot.documentChanges;

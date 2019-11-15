@@ -116,9 +116,10 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
           if(doc.type == DocumentChangeType.added || doc.type == DocumentChangeType.modified){
             var questionnaire = doc.document;
             if(this.mounted) setState(() {
-              _showInteractQuestions = questionnaire.data['status'];
-              if(_showInteractQuestions){
+              var status = questionnaire.data['status'];
+              if(status == 1){
                 setState(() {
+                  _showInteractQuestions = true;
                   _questionnaireData = questionnaire.data;
                   _questionnaireData['courseId'] = widget.courseId;
                   _questionnaireData['questionnaireId'] = questionnaire.documentID;

@@ -329,7 +329,10 @@ class DatabaseManager{
             contentType: type,
           ),
         );
-        await updateLesson(lessonId, true, "fileExists", type, filePath);
+        var dowurl = await (await uploadTask.onComplete).ref.getDownloadURL();
+        var url = dowurl.toString();
+        print(url);
+        await updateLesson(lessonId, true, "fileExists", type, url);
         break;        
       }
       case "url": {
@@ -356,6 +359,46 @@ class DatabaseManager{
     });
   }
   
+
+  static Future<void> updateQuestionnaire(String questionnaireId, String param, String column) async{
+    DocumentReference reference = Firestore.instance.document('questionnaires/' + questionnaireId);
+    print(questionnaireId);
+    Firestore.instance.runTransaction((Transaction transaction) async {
+      switch(column){
+        case "users": {
+          DocumentSnapshot snapshot = await transaction.get(reference); 
+          bool duplicated = false;  
+          var list = [];
+          list = List<dynamic>.from(snapshot.data[column]);
+          print(list);       
+          // snapshot.data['users'].forEach((user) {
+          //   print(user);
+          //   if(user['id'] == Auth.uid){
+          //     duplicated = true;
+          //   } else {
+          //     list.add({
+          //       'id': user['id'],
+          //       'name': user['name'],
+          //       'email': user['email'],
+          //     });
+          //   }
+          // });
+          // if(duplicated == false)
+          //   list.add({
+          //     'id': Auth.uid,
+          //     'name': Auth.getEmail(),
+          //     'email': Auth.getName(),
+          //   });
+            transaction.update(reference, <String, dynamic>{column: list});    
+          break;
+        }          
+        default: {
+          transaction.update(reference, <String, dynamic>{column: param});    
+          break;
+        }
+      }           
+    });         
+  }
 
   static Future<void> updateQuestion(String lesson, String question, String param, String column, String uid) async{
     DocumentReference reference = Firestore.instance.document('lessons/' + lesson + "/questions/" + question);
@@ -428,6 +471,7 @@ class DatabaseManager{
     DocumentReference reference = Firestore.instance.collection('courses').document(code);
     await reference.get().then((snapshot){
       if(snapshot.data != null){
+        print('here code: $code');
         int participants = snapshot.data['participants'];
         updateCourse(code,"1","participants");
         addUsersPerCourse(code,uid);
