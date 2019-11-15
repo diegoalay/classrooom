@@ -3,12 +3,12 @@ import 'package:classroom/interact_questions/page_indicator.dart';
 import 'package:flutter/material.dart';
 import '../database_manager.dart';
 class InteractQuestion extends StatefulWidget {
-  final String questionId, question, questionnarieId;
+  final String id, question, questionnarieId;
   final int timeToAnswer, index, questionsLength, totalOfAnswers, correctAnswer;
   final Function onTimeout;
 
   const InteractQuestion({
-    @required this.questionId,
+    @required this.id,
     @required this.question,
     @required this.index,
     @required this.questionsLength,

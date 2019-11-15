@@ -3,8 +3,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:classroom/lesson.dart';
 import 'package:classroom/widget_passer.dart';
 import 'package:classroom/nav.dart';
-import 'package:classroom/database_manager.dart';
-import 'package:classroom/auth.dart';
 import 'dart:convert';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter/services.dart';
@@ -66,6 +64,21 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
     _scrollController = ScrollController();
 
     _lessons = List<Lesson>();
+    // DatabaseManager.getLessonsPerCourse(widget.courseId).then(
+    //   (List<String> ls) => setState(() {
+    //     List<String> _lessonsListString = List<String>();
+    //     _lessonsListString = List<String>.from(ls);
+    //     DatabaseManager.getLessonsPerCourseByList(_lessonsListString, Auth.uid, widget.courseId).then(
+    //       (List<Lesson> lc) => setState(() {
+    //         for(var lesson in lc){
+    //           lesson.authorId = widget.authorId;
+    //           _lessons.add(lesson);
+    //         }
+    //       })
+    //     );         
+    //   })
+    // );
+
 
     Firestore.instance.collection("courses").document(widget.courseId).snapshots().listen((snapshot){
       var value = snapshot.data;
@@ -83,10 +96,48 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
       }
     });
      
+    // Firestore.instance.collection("lessonsPerCourse").document(widget.courseId).snapshots().listen((snapshot){
+    //   if(snapshot.data != null){
+    //     if(this.mounted) setState(() {
+    //       List<String> lista = new List<String>();
+    //       if(_lessons.isEmpty) lista = List<String>.from(snapshot.data['lessons']);
+    //       else{
+    //         lista.add((snapshot.data['lessons']).last);
+    //       }
+    //       DatabaseManager.getLessonsPerCourseByList(lista, Auth.uid, widget.courseId).then((List<Lesson> lc){
+    //         if(this.mounted){
+    //           setState(() {
+    //             for(var lesson in lc){
+    //               lesson.authorId = widget.authorId;
+    //               Map text = {
+    //                 'lessonId': lesson.lessonId,
+    //                 'name' : lesson.name,
+    //                 'date' : lesson.date,
+    //                 'comments': lesson.comments,
+    //                 'owner': widget.owner,
+    //                 'authorId': widget.authorId,
+    //                 'courseId': widget.courseId,
+    //                 'fileType': lesson.fileType,
+    //                 'fileExists': lesson.fileExists,
+    //                 'filePath': lesson.filePath,                    
+    //                 'description': lesson.description,
+    //               };
+    //               String textLesson = json.encode(text); 
+    //               _lessons.add(lesson);
+    //             }
+    //           });
+    //         }
+    //       });    
+    //     }); 
+    //   }   
+    // });
+
     Firestore.instance.collection("lessons").where('courseId', isEqualTo: widget.courseId).snapshots().listen((snapshot){
       List<DocumentChange> docs = snapshot.documentChanges;
       if(docs != null){
         for(var doc in docs){
+          print("DOC: ${doc.type}");  
+          print("DOC: ${doc.document.data}");  
           if(doc.type == DocumentChangeType.added){
             if(this.mounted){
               setState(() {
