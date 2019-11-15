@@ -115,8 +115,6 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
       ),
     );
 
-    InteractRoute.questionOpacityController.forward();
-
     showFile();
 
     if(widget.owner){
@@ -198,6 +196,8 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
       ),
     );
 
+    // InteractRoute.questionPositionController.forward();
+
     Firestore.instance.collection("lessons").document(widget.lessonId).collection("questions").orderBy("votesLength", descending: true).snapshots().listen((snapshot) async{
       InteractRoute.index = 0;
       List<DocumentChange> docs = snapshot.documentChanges;
@@ -218,7 +218,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
             hours: doc.document.data['hours'],
             minutes: doc.document.data['minutes'],                
             votesLength: doc.document.data['votesLength'],
-            attachment: doc.document.data['attachment'],
+            attachment: '${doc.document.data['attachment']}',
             isVideo: widget.isVideo,
             index: InteractRoute.index++,
           );
@@ -238,8 +238,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
     });
 
     _questionStream.listen((text) {
-      print('TAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP HERE $text');
-      print(InteractRoute.questionId);
+      print('SE RECIBE: ${InteractRoute.questionId}');
       if(text != null){
         setState(() {
           _questionToAnswer = text;

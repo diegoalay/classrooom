@@ -239,12 +239,12 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
         }
         if (_addBarController.isDismissed) {
           _addBarController.forward();
-          InteractRoute.questionOpacityController.forward();
+          // InteractRoute.questionOpacityController.forward();
           ChatBar.chatBarOffsetController.forward();
         } else {
           _addBarController.reverse();
           ChatBar.chatBarOffsetController.reverse().then((_) {
-            InteractRoute.questionOpacityController.reverse();
+            // InteractRoute.questionOpacityController.reverse();
           });
         }
       }
@@ -412,7 +412,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
           }
         }); 
         ChatBar.chatBarOffsetController.reverse().then((val){
-          InteractRoute.questionOpacityController.reverse();
+          // InteractRoute.questionOpacityController.reverse();
         }); 
       }else if(Nav.addBarMode == AddBarMode.CHANGE_NAME){
         print('NOMBRE: $val');
@@ -463,7 +463,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
           }
         }); 
         ChatBar.chatBarOffsetController.reverse().then((val){
-          InteractRoute.questionOpacityController.reverse();
+          // InteractRoute.questionOpacityController.reverse();
         }); 
       } else if (Nav.addBarMode == AddBarMode.YOUTUBE_PATH) {
         String videoId;
@@ -712,7 +712,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                     }
                   });
                   ChatBar.chatBarOffsetController.reverse().then((value){
-                    InteractRoute.questionOpacityController.reverse();
+                    // InteractRoute.questionOpacityController.reverse();
                   });
                   FocusScope.of(context).requestFocus(new FocusNode());
                 }else if(status == AnimationStatus.dismissed){
@@ -724,7 +724,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                       from: 0
                     );
                     ChatBar.chatBarOffsetController.forward();
-                    InteractRoute.questionOpacityController.forward();
+                    // InteractRoute.questionOpacityController.forward();
                     FocusScope.of(context).requestFocus(_getFocusNode());
                   }
               }else if(choice.title == 'Nombre'){
@@ -738,7 +738,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                     }
                   });
                   ChatBar.chatBarOffsetController.reverse().then((value){
-                    InteractRoute.questionOpacityController.reverse();
+                    // InteractRoute.questionOpacityController.reverse();
                   });
                   FocusScope.of(context).requestFocus(new FocusNode());
                 }else if(status == AnimationStatus.dismissed){
@@ -750,7 +750,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                       from: 0
                     );
                     ChatBar.chatBarOffsetController.forward();
-                    InteractRoute.questionOpacityController.forward();
+                    // InteractRoute.questionOpacityController.forward();
                     FocusScope.of(context).requestFocus(_getFocusNode());
                   }
               }
@@ -830,7 +830,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                   }
                 });
                 ChatBar.chatBarOffsetController.reverse().then((value){
-                  InteractRoute.questionOpacityController.reverse();
+                  // InteractRoute.questionOpacityController.reverse();
                 });
                 FocusScope.of(context).requestFocus(new FocusNode());
               }else if(status == AnimationStatus.dismissed){

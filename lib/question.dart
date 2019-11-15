@@ -1,3 +1,5 @@
+import 'package:classroom/presentation.dart';
+import 'package:classroom/youtube_video.dart';
 import 'package:flutter/material.dart';
 import 'package:classroom/vote.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -431,10 +433,10 @@ class _QuestionState extends State<Question>
       }
     });
 
-    // if(widget.isVideo && YouTubeVideo.videoSeekToPasser != null) YouTubeVideo.videoSeekToPasser.sender.add(widget.attachment);
-    // else if(Presentation.slidePasser != null) {
-    //   Presentation.slidePasser.sender.add(widget.attachment);
-    // }
+    if(widget.isVideo && YouTubeVideo.videoSeekToPasser != null) YouTubeVideo.videoSeekToPasser.sender.add(widget.attachment);
+    else if(Presentation.slidePasser != null) {
+      Presentation.slidePasser.sender.add(widget.attachment);
+    }
   }
 
   Widget _getAttachPosition(){

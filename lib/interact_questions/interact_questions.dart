@@ -49,7 +49,7 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
     _interactQuestionsList  = new List<InteractQuestion>();
 
     //HENRY
-    Firestore.instance.collection("questionnair").document(widget.questionnaireId).snapshots().listen((snapshot){
+    Firestore.instance.collection("questionnaires").document(widget.questionnaireId).snapshots().listen((snapshot){
       var value = snapshot.data;
       if(this.mounted){
         setState(() {

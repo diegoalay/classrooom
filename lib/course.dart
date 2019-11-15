@@ -281,7 +281,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
-                              _lessons + ' clases',
+                              _lessons + ' lecciones',
                               style: TextStyle(
                                 color: Colors.white,
                               ),

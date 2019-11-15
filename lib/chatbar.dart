@@ -117,6 +117,7 @@ class _ChatBarState extends State<ChatBar> with SingleTickerProviderStateMixin{
         //   Question.answerPasser.sender.add(textAnswer);
         //   if(widget.owner) Question.answeredPasser.sender.add('1');
           InteractRoute.questionPositionController.reverse();
+          InteractRoute.questionOpacityController.reverse();
           ChatBar.labelPasser.sender.add('Escriba una pregunta');
           ChatBar.mode = ChatBarMode.QUESTION;          
         });        
