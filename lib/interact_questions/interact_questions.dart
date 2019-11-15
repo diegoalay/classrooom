@@ -1,4 +1,5 @@
 import 'package:classroom/interact_questions/interact_question.dart';
+import 'package:classroom/interact_questions/types/questionnaire.dart';
 import 'package:classroom/stateful_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -9,11 +10,11 @@ import '../database_manager.dart';
 
 class InteractQuestions extends StatefulWidget {
   final Function onReject;
-  final String courseId;
+  final Map<dynamic,dynamic> questionnaire;
 
   const InteractQuestions({
     this.onReject,
-    this.courseId,
+    this.questionnaire,
   });
 
   @override
@@ -38,26 +39,9 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
   void initState() {
     super.initState();
 
-    print('HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE');
 
     _setStatusBarColor();
     _interactQuestionsList  = new List<InteractQuestion>();
-      print(widget.courseId);
-      Firestore.instance.collection("questionnaires").where('courseId', isEqualTo: widget.courseId).snapshots().listen((snapshot){
-      List<DocumentChange> docs = snapshot.documentChanges;
-      if(docs != null){
-        for(var doc in docs){
-          if(doc.type == DocumentChangeType.added){
-            print('search $doc');
-          }else if (doc.type == DocumentChangeType.modified){
-            print('edit $doc');
-          }else if(doc.type == DocumentChangeType.removed){
-            
-          }
-        }
-      }
-    });
-
     // DatabaseManager.requestGet('questionnaires', {"courseId": widget.courseId}, 'getQuestionnaires').then((result){     
     //   print(result); 
     //   result.forEach((obj) {
@@ -68,12 +52,12 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
     //       questions.forEach((questionObj) {
     //         _interactQuestionsList.add(InteractQuestion(
     //             questionnarieId: questionObj['id'],
-    //             question: questionObj['question'],
+    //             question: questionObj['quest ion'],
     //             timeToAnswer: questionObj['time'],
     //             index: i,
-    //             totalOfQuestions: 2,
+    //             questionsLength: 2,
     //             onTimeout: _handleTimeout,
-    //             totalOfAnswers: questionObj['answersCount'],
+    //             totalOfAnswers: questionObj['answersLength'],
     //             correctAnswer: questionObj['correctAnswer'],
     //           )
     //         );
@@ -86,7 +70,7 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
 
     //TODO: Setear esto a true cuando todavía no se haya pasado a la siguiente pregunta
     _isWaiting = false;
-    
+    handleGetQuestions();
     _widgetOpacityController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 700),
@@ -120,6 +104,47 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
   }
 
   void _handleTimeout() {
+  }
+
+  void handleGetQuestions(){
+    print(widget.questionnaire['questionnaireId']);
+    Firestore.instance.collection('questionnaires/${widget.questionnaire['questionnaireId']}/questions').snapshots().listen((snapshot){
+      List<DocumentChange> docs = snapshot.documentChanges;
+      if(docs != null){
+        List<QuestionnaireQuestion> questionnaireQuestionList = new List<QuestionnaireQuestion>();
+        for(var doc in docs){
+          print(doc.document.data);
+          if(doc.type == DocumentChangeType.added || doc.type == DocumentChangeType.modified){
+            List<QuestionnaireQuestionAnswer> questionnaireAnswersList = new List<QuestionnaireQuestionAnswer>(); 
+            print(doc.document.data['answers']);
+            for(var answer in doc.document.data['answers']) {
+              questionnaireAnswersList.add(
+                QuestionnaireQuestionAnswer(
+                  answer['id'],
+                  answer['answer'],
+                  answer['correct'],
+                )
+              );
+            }
+            questionnaireQuestionList.add(
+              QuestionnaireQuestion(
+                doc.document.documentID,
+                doc.document['question'],
+                doc.document['time'],
+                questionnaireAnswersList,
+              )
+            );
+          }
+        }
+        Questionnaire questionnaire = new Questionnaire (
+            widget.questionnaire['questionnaireId'],
+            widget.questionnaire['courseId'],
+            widget.questionnaire['name'],
+            widget.questionnaire['questionsLength'],
+            questionnaireQuestionList,
+        );
+      }
+    });
   }
 
   @override
@@ -171,7 +196,16 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
                 size: 35,
                 lineWidth: 5,
                 color: Colors.white,
-              ) :  _status == STATUS.ACCEPTED ? _interactQuestionsList.first : Container(),
+               ) :  _status == STATUS.ACCEPTED ? InteractQuestion(
+                questionnarieId: widget.questionnaire['questionnaireId'],
+                question: '¿Cuál es la definición correcta de thread?',
+                timeToAnswer: 3,
+                index: 2,
+                questionsLength: widget.questionnaire['questionsLength'],
+                onTimeout: _handleTimeout,
+                totalOfAnswers: 4,
+                correctAnswer: 2,
+              ) : Container(),
             ],
           ),
         ),

@@ -17,7 +17,7 @@ import 'package:classroom/choice.dart';
 import 'dart:convert';
 import 'package:classroom/notify.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum AddBarMode {
   CREATE,
@@ -83,6 +83,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
   SharedPreferences prefs;
   bool _resizeScaffold, _showInteractQuestions;
   DateTime selectedDate = DateTime.now();
+  Map<dynamic,dynamic> _questionnaireData;
   //WidgetPasser courseBloc = WidgetPasser();
 
   List<Choice> choices = <Choice>[
@@ -97,14 +98,36 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
     super.initState();
 
     _initSharedPreferences();
-
-    //TODO: Poner esto en true cuando se quiere mostrar las preguntas.
-    _showInteractQuestions = true;
+    _showInteractQuestions = false;
+    _questionnaireData = null;
     Nav.sectionId = widget.section;
     Nav.popPasser.receiver.listen((newPop) {
       if (newPop != null) {
         if (this.mounted) {
           Navigator.pop(context, true);
+        }
+      }
+    });
+
+    Firestore.instance.collection("questionnaires").where('courseId', isEqualTo: widget.courseId).snapshots().listen((snapshot){
+      List<DocumentChange> docs = snapshot.documentChanges;
+      if(docs != null){
+        for(var doc in docs){
+          if(doc.type == DocumentChangeType.added || doc.type == DocumentChangeType.modified){
+            var questionnaire = doc.document;
+            if(this.mounted) setState(() {
+              _showInteractQuestions = questionnaire.data['status'];
+              if(_showInteractQuestions){
+                setState(() {
+                  _questionnaireData = questionnaire.data;
+                  _questionnaireData['courseId'] = widget.courseId;
+                  _questionnaireData['questionnaireId'] = questionnaire.documentID;
+                });
+              }
+            });
+          }else if(doc.type == DocumentChangeType.removed){
+            
+          }
         }
       }
     });
@@ -1122,7 +1145,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                       right: 0,
                       bottom: 0,
                       child: InteractQuestions(
-                        courseId: widget.courseId,
+                        questionnaire: _questionnaireData,
                         onReject: _handleQuestionsReject,
                       ),
                     ) : Container()

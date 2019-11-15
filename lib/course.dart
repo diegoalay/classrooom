@@ -201,7 +201,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
               return Nav(
                 owner: widget.owner,
                 preferredSize: 65,
-                section: 'lessonsLength',
+                section: 'lessons',
                 title: 'LECCIONES',
                 subtitle: _name,
                 courseId: widget.courseId,

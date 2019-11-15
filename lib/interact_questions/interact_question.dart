@@ -3,14 +3,15 @@ import 'package:classroom/interact_questions/page_indicator.dart';
 import 'package:flutter/material.dart';
 import '../database_manager.dart';
 class InteractQuestion extends StatefulWidget {
-  final String question, questionnarieId;
-  final int timeToAnswer, index, totalOfQuestions, totalOfAnswers, correctAnswer;
+  final String questionId, question, questionnarieId;
+  final int timeToAnswer, index, questionsLength, totalOfAnswers, correctAnswer;
   final Function onTimeout;
 
   const InteractQuestion({
+    @required this.questionId,
     @required this.question,
     @required this.index,
-    @required this.totalOfQuestions,
+    @required this.questionsLength,
     @required this.totalOfAnswers,
     @required this.correctAnswer,
     @required this.questionnarieId,
@@ -31,24 +32,24 @@ class _InteractQuestionState extends State<InteractQuestion> with TickerProvider
   @override
   void initState() {
     _interactQuestionsList = new List<InteractQuestion>();
-    DatabaseManager.requestGet('questionnaires/${widget.questionnarieId}', '', 'getQuestionnairesQuestions').then((result){
-      result.forEach((obj) {
-        DatabaseManager.requestGet('questionnaires/${widget.questionnarieId}/questions/${obj['id']}/answers', '', 'getQuestionnairesQuestionAnswers').then((result){
-          print(obj);
-          // _interactQuestionsList.add(InteractQuestion(
+    // DatabaseManager.requestGet('questionnaires/${widget.questionnarieId}', '', 'getQuestionnairesQuestions').then((result){
+    //   result.forEach((obj) {
+    //     DatabaseManager.requestGet('questionnaires/${widget.questionnarieId}/questions/${obj['id']}/answers', '', 'getQuestionnairesQuestionAnswers').then((result){
+    //       print(obj);
+    //       // _interactQuestionsList.add(InteractQuestion(
               
-          //     question: obj['name'],
-          //     timeToAnswer: int.parse(obj['time']),
-          //     index: 1,
-          //     totalOfQuestions: int.parse(obj['questions']),
-          //     onTimeout: _handleTimeout,
-          //     totalOfAnswers: 4,
-          //     correctAnswer: 2,
-          //   )
-          // );
-        });
-      });        
-    });
+    //       //     question: obj['name'],
+    //       //     timeToAnswer: int.parse(obj['time']),
+    //       //     index: 1,
+    //       //     questionsLength: int.parse(obj['questions']),
+    //       //     onTimeout: _handleTimeout,
+    //       //     totalOfAnswers: 4,
+    //       //     correctAnswer: 2,
+    //       //   )
+    //       // );
+    //     });
+    //   });        
+    // });
     
     super.initState();
 
@@ -207,14 +208,14 @@ class _InteractQuestionState extends State<InteractQuestion> with TickerProvider
               Column(
                 children: <Widget>[
                   Text(
-                    'Pregunta ${widget.index} de ${widget.totalOfQuestions}',
+                    'Pregunta ${widget.index} de ${widget.questionsLength}',
                     style: TextStyle(
                       color: Colors.white
                     ),
                   ),
                   PageIndicator(
                     index: widget.index,
-                    totalOfPages: widget.totalOfQuestions,
+                    totalOfPages: widget.questionsLength,
                     context: context,
                   )
                 ],
