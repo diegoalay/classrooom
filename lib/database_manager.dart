@@ -206,14 +206,20 @@ class DatabaseManager{
     return documentId;
   }
 
-  static Future<dynamic> getFieldInDocument(location,document,field) async{
+  static Future<dynamic> getFieldInDocument(location,document,field,field2) async{
     var val;
+    var val2;
     DocumentReference reference = Firestore.instance.collection(location).document(document);
     await reference.get().then((snapshot){
-      if(snapshot.data != null) val = snapshot[field];     
+      if(snapshot.data != null) {
+        val = snapshot[field];     
+        val2 = snapshot[field2];
+      }
     });
-    if(val == null) return false;
-    return val;
+    Map<dynamic,dynamic> retorno = new Map<dynamic,dynamic>();
+    retorno['fileType'] = val;
+    retorno['fileStatus'] = val2;
+    return retorno;
   }
 
   static Future<bool> searchFieldInCollection(location,collection,field,compare) async{
@@ -258,6 +264,8 @@ class DatabaseManager{
       'courseName': courseName,
       'name': name,
       'fileExists' : false,
+      'status' : true,
+      'fileStatus' : true,
       'filePath' : '',
       'fileType' : '',
       'description': description,
@@ -366,30 +374,14 @@ class DatabaseManager{
     Firestore.instance.runTransaction((Transaction transaction) async {
       switch(column){
         case "users": {
-          DocumentSnapshot snapshot = await transaction.get(reference); 
-          bool duplicated = false;  
-          var list = [];
-          list = List<dynamic>.from(snapshot.data[column]);
-          print(list);       
-          // snapshot.data['users'].forEach((user) {
-          //   print(user);
-          //   if(user['id'] == Auth.uid){
-          //     duplicated = true;
-          //   } else {
-          //     list.add({
-          //       'id': user['id'],
-          //       'name': user['name'],
-          //       'email': user['email'],
-          //     });
-          //   }
-          // });
-          // if(duplicated == false)
-          //   list.add({
-          //     'id': Auth.uid,
-          //     'name': Auth.getEmail(),
-          //     'email': Auth.getName(),
-          //   });
+          DocumentSnapshot snapshot = await transaction.get(reference);   
+          List<String> list = List<String>.from(snapshot.data['users']);
+          list = List<String>.from(snapshot.data[column]);
+          if(!list.contains(param)) {
+            list.add(param);    
+            print(param);  
             transaction.update(reference, <String, dynamic>{column: list});    
+          }
           break;
         }          
         default: {

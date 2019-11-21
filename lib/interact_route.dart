@@ -314,7 +314,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
   }
 
   Widget _getPresentation(BuildContext context){
-    if(widget.isVideo){
+    if(widget.isVideo && _presentationLoaded){
       return YouTubeVideo(
         videoId: widget.filePath,
       );
@@ -469,39 +469,52 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
   }
 
   void showFile(){
-    DatabaseManager.getFieldInDocument("lessons",widget.lessonId,"fileType").then((fileType){
-      print("fileType is: $fileType");
-      bool presentation = false;
-      if(fileType == "pdf") presentation = true;
-      if(this.mounted){
-        if(presentation == true){
-          if(this.mounted) setState(() {
-            _presentationExist = true;
-          });
-          DatabaseManager.getFiles("pdf", widget.lessonId).then((path){
-            print("ARCHIVO:  $path");
-            if(path != 'EXCEPTION'){
-              if(this.mounted) setState(() {
-                _presentation = Presentation(
-                  file: path,
-                  onPageChange: this._handlePresentationPageChange,
-                );
-                _presentationLoaded = true;
-              });
-            }else{
-              if(this.mounted) setState(() {
-                _presentation = Text(
-                  'EXCEPCION :c',
-                );
-                _presentationLoaded = true;
-              });
-            }
-          });
-        }else{
-          setState(() {
-            _presentationLoaded = true;
-          });
+    DatabaseManager.getFieldInDocument("lessons",widget.lessonId,"fileType","fileStatus").then((data){
+      print("data is: $data");
+      String fileType = data['fileType'];
+      bool fileStatus = data['fileStatus'];
+      if(fileStatus){ 
+        bool presentation = false;
+        if(fileType == "pdf") presentation = true;
+        if(this.mounted){
+          if(presentation == true){
+            if(this.mounted) setState(() {
+              _presentationExist = true;
+            });
+            DatabaseManager.getFiles("pdf", widget.lessonId).then((path){
+              print("ARCHIVO:  $path");
+              if(path != 'EXCEPTION'){
+                if(this.mounted) setState(() {
+                  _presentation = Presentation(
+                    file: path,
+                    onPageChange: this._handlePresentationPageChange,
+                  );
+                  _presentationLoaded = true;
+                });
+              }else{
+                if(this.mounted) setState(() {
+                  _presentation = Text(
+                    'EXCEPCION :c',
+                  );
+                  _presentationLoaded = true;
+                });
+              }
+            });
+          }else{
+            setState(() {
+              _presentationLoaded = true;
+            });
+          }
         }
+      } else {
+        setState(() {
+          _uploadPresentation = Text(
+            'No hay presentación cargada.',
+            style: TextStyle(
+              color: Colors.grey,
+            ),
+          );   
+        });      
       }
     }); 
   }

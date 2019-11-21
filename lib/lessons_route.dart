@@ -82,7 +82,36 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
         } 
       }
     });
-     
+
+    //Firestore.instance.collection("lessons").where('courseId', isEqualTo: widget.courseId).where('status', isEqualTo: true).getDocuments().then((snapshot){
+    //   List<DocumentChange> docs = snapshot.documentChanges;
+    //   if(docs != null){
+    //     for(var doc in docs){
+    //       // if(doc.type == DocumentChangeType.added){
+    //         if(this.mounted){
+    //           setState(() {
+    //             print(doc.document.data);
+    //             Lesson lesson = new Lesson(
+    //               lessonId: doc.document.documentID,
+    //               name : doc.document['name'],
+    //               date : doc.document['date'],
+    //               comments: doc.document['comments'],
+    //               owner: widget.owner,
+    //               authorId: widget.authorId,
+    //               courseId: widget.courseId,
+    //               fileType: doc.document['fileType'],
+    //               fileExists: doc.document['fileExists'],
+    //               filePath: doc.document['filePath'],                    
+    //               description: doc.document['description']
+    //             );
+    //             if(!(_lessons.contains(lesson))) _lessons.add(lesson);
+    //           });
+    //         }            
+    //       // }
+    //     }
+    //   }
+    // });
+
     Firestore.instance.collection("lessons").where('courseId', isEqualTo: widget.courseId).snapshots().listen((snapshot){
       List<DocumentChange> docs = snapshot.documentChanges;
       if(docs != null){

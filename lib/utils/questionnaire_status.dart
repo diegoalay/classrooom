@@ -1,0 +1,8 @@
+
+enum QUESTIONNAIRE_STATUS {
+  OFF,
+  WAITTING,
+  IDLE,
+  ASKING,
+  CLOSED,
+}

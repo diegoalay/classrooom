@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:classroom/courses_route.dart';
 import 'package:classroom/interact_questions/interact_questions.dart';
 import 'package:classroom/interact_route.dart';
+import 'package:classroom/utils/questionnaire_status.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:classroom/stateful_button.dart';
@@ -81,7 +82,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
   Color _titleColor, _color, _actionsColor;
   FocusNode _focusAddBarNodeLessons, _focusAddBarNodeCourses;
   SharedPreferences prefs;
-  bool _resizeScaffold, _showInteractQuestions, _sortQuestionsByPage;
+  bool _resizeScaffold, _showInteractQuestions;
   DateTime selectedDate = DateTime.now();
   Map<dynamic,dynamic> _questionnaireData;
   //WidgetPasser courseBloc = WidgetPasser();
@@ -117,7 +118,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
             var questionnaire = doc.document;
             if(this.mounted) setState(() {
               var status = questionnaire.data['status'];
-              if(status == 1){
+              if(status == QUESTIONNAIRE_STATUS.WAITTING.index){
                 setState(() {
                   _showInteractQuestions = true;
                   _questionnaireData = questionnaire.data;
@@ -132,8 +133,6 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
         }
       }
     });
-    
-    _sortQuestionsByPage = false;
 
     _navTitle = widget.title;
     _navSubtitle = widget.subtitle;
@@ -239,12 +238,12 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
         }
         if (_addBarController.isDismissed) {
           _addBarController.forward();
-          // InteractRoute.questionOpacityController.forward();
+          InteractRoute.questionOpacityController.forward();
           ChatBar.chatBarOffsetController.forward();
         } else {
           _addBarController.reverse();
           ChatBar.chatBarOffsetController.reverse().then((_) {
-            // InteractRoute.questionOpacityController.reverse();
+            InteractRoute.questionOpacityController.reverse();
           });
         }
       }
@@ -412,7 +411,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
           }
         }); 
         ChatBar.chatBarOffsetController.reverse().then((val){
-          // InteractRoute.questionOpacityController.reverse();
+          InteractRoute.questionOpacityController.reverse();
         }); 
       }else if(Nav.addBarMode == AddBarMode.CHANGE_NAME){
         print('NOMBRE: $val');
@@ -463,11 +462,13 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
           }
         }); 
         ChatBar.chatBarOffsetController.reverse().then((val){
-          // InteractRoute.questionOpacityController.reverse();
+          InteractRoute.questionOpacityController.reverse();
         }); 
       } else if (Nav.addBarMode == AddBarMode.YOUTUBE_PATH) {
         String videoId;
         if(val.contains('?v-')) videoId = val.split('?v=')[1];
+        else if(val.contains('?v=')) videoId = val.split('?v=')[1];
+        else if(val.contains("https://youtu.be/")) videoId = val.split('https://youtu.be/')[1];
         else videoId = val;
         print(videoId);
         DatabaseManager.uploadFiles("url", widget.lessonId, videoId).then((path){
@@ -677,15 +678,12 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
           margin: EdgeInsets.only(right: 9),
           child: IconButton(
             icon: Icon(
-              _sortQuestionsByPage ? FontAwesomeIcons.cubes : FontAwesomeIcons.cube,
+              FontAwesomeIcons.cube,
               size: 20,
             ),
-            tooltip: _sortQuestionsByPage ? 'Mostrar todas las preguntas' : 'Ordenar preguntas por diapositiva',
+            tooltip: 'Ordenar preguntas por diapositiva',
             onPressed: (){
                 InteractRoute.setQuestionsSort.sender.add('1');
-                setState(() {
-                  _sortQuestionsByPage = !_sortQuestionsByPage;
-                });
             },
           ),
         )
@@ -712,7 +710,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                     }
                   });
                   ChatBar.chatBarOffsetController.reverse().then((value){
-                    // InteractRoute.questionOpacityController.reverse();
+                    InteractRoute.questionOpacityController.reverse();
                   });
                   FocusScope.of(context).requestFocus(new FocusNode());
                 }else if(status == AnimationStatus.dismissed){
@@ -724,7 +722,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                       from: 0
                     );
                     ChatBar.chatBarOffsetController.forward();
-                    // InteractRoute.questionOpacityController.forward();
+                    InteractRoute.questionOpacityController.forward();
                     FocusScope.of(context).requestFocus(_getFocusNode());
                   }
               }else if(choice.title == 'Nombre'){
@@ -738,7 +736,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                     }
                   });
                   ChatBar.chatBarOffsetController.reverse().then((value){
-                    // InteractRoute.questionOpacityController.reverse();
+                    InteractRoute.questionOpacityController.reverse();
                   });
                   FocusScope.of(context).requestFocus(new FocusNode());
                 }else if(status == AnimationStatus.dismissed){
@@ -750,7 +748,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                       from: 0
                     );
                     ChatBar.chatBarOffsetController.forward();
-                    // InteractRoute.questionOpacityController.forward();
+                    InteractRoute.questionOpacityController.forward();
                     FocusScope.of(context).requestFocus(_getFocusNode());
                   }
               }
@@ -830,7 +828,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                   }
                 });
                 ChatBar.chatBarOffsetController.reverse().then((value){
-                  // InteractRoute.questionOpacityController.reverse();
+                  InteractRoute.questionOpacityController.reverse();
                 });
                 FocusScope.of(context).requestFocus(new FocusNode());
               }else if(status == AnimationStatus.dismissed){
@@ -1153,6 +1151,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                       child: InteractQuestions(
                         questionnaire: _questionnaireData,
                         onReject: _handleQuestionsReject,
+                        questionnaireId: _questionnaireData['questionnaireId'],
                       ),
                     ) : Container()
                 ],
