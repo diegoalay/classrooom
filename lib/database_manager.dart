@@ -368,22 +368,28 @@ class DatabaseManager{
   }
   
 
-  static Future<void> updateQuestionnaire(String questionnaireId, String param, String column) async{
+  static Future<void> updateQuestionnaire(String questionnaireId, String param, String column, int questionIndex, int answerIndex) async{
     DocumentReference reference = Firestore.instance.document('questionnaires/' + questionnaireId);
     print(questionnaireId);
     Firestore.instance.runTransaction((Transaction transaction) async {
       switch(column){
         case "users": {
           DocumentSnapshot snapshot = await transaction.get(reference);   
-          List<String> list = List<String>.from(snapshot.data['users']);
-          list = List<String>.from(snapshot.data[column]);
+          List<String> list = List<String>.from(snapshot.data[column]);
           if(!list.contains(param)) {
             list.add(param);    
             print(param);  
             transaction.update(reference, <String, dynamic>{column: list});    
           }
           break;
-        }          
+        }  
+        case "votes": {
+          DocumentSnapshot snapshot = await transaction.get(reference); 
+          List<String> list = List<String>.from(snapshot.data[column]);
+          list.add('$param-$questionIndex-$answerIndex');    
+          transaction.update(reference, <String, dynamic>{column: list});            
+          break;
+        }        
         default: {
           transaction.update(reference, <String, dynamic>{column: param});    
           break;

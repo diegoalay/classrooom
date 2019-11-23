@@ -23,6 +23,7 @@ class QuestionnaireQuestion {
   int questionIndex;
   int correctAnswer;
   List<QuestionnaireQuestionAnswer> answers;
+  int answerLength;
   
   QuestionnaireQuestion(
     this.id,
@@ -31,6 +32,7 @@ class QuestionnaireQuestion {
     this.questionIndex,
     this.correctAnswer,
     this.answers,
+    this.answerLength,
   );
 }
 

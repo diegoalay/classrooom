@@ -14,11 +14,13 @@ class InteractQuestions extends StatefulWidget {
   final Function onReject;
   final Map<dynamic,dynamic> questionnaire;
   final String questionnaireId;
+  final Function questionnaireHide;
 
   const InteractQuestions({
     this.onReject,
     this.questionnaire,
     this.questionnaireId, 
+    this.questionnaireHide,
   });
 
   @override
@@ -35,7 +37,6 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
   Animation<double> _widgetOpacity;
   STATUS _status;
   bool _isWaiting;
-  List<InteractQuestion> _interactQuestionsList;
   int _questionnaireIndex;
   int _questionnaireStatus;
   Questionnaire _questionnaire;
@@ -49,17 +50,27 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
 
 
     _setStatusBarColor();
-    _interactQuestionsList  = new List<InteractQuestion>();
     _isWaiting = false;
+    
+    _questionnaireIndex = 0;
+    
     Firestore.instance.collection("questionnaires").document(widget.questionnaireId).snapshots().listen((snapshot){
         var questionnaire = snapshot.data;
-        setState(() {
-          _questionnaireIndex = questionnaire['index'];
-          _questionnaireStatus = questionnaire['status'];
-        });
         if(this.mounted){
-          print('change');
-          print(questionnaire['status']);
+            setState(() {
+            _questionnaireIndex = questionnaire['questionIndex'];
+            print('index $_questionnaireIndex');
+          });
+        }
+
+        if(this.mounted){
+          setState(() {
+            _questionnaireStatus = questionnaire['status'];
+            print('status $_questionnaireStatus');
+          });
+        }
+
+        if(this.mounted){
           if(questionnaire['status'] == QUESTIONNAIRE_STATUS.IDLE.index || questionnaire['status'] == QUESTIONNAIRE_STATUS.WAITTING.index) {
             setState(() {
               _isWaiting = true;
@@ -68,13 +79,17 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
             setState(() {
               _isWaiting = false;
             });
+          } else if (questionnaire['status'] == QUESTIONNAIRE_STATUS.CLOSED.index) {
+            _widgetOpacityController.reverse().then((_){
+                widget.questionnaireHide();
+            });
           }
         } 
     });
     handleGetQuestions();
     _widgetOpacityController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 700),
+      duration: Duration(milliseconds: 300),
     );
 
     _widgetOpacity = Tween<double>(
@@ -92,7 +107,7 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
 
 
   void _handleAcceptTap() {
-    DatabaseManager.updateQuestionnaire(widget.questionnaire['questionnaireId'], '${Auth.uid}-${Auth.getEmail()}-${Auth.getName()}', 'users');
+    DatabaseManager.updateQuestionnaire(widget.questionnaire['questionnaireId'], '${Auth.uid}-${Auth.getEmail()}-${Auth.getName()}', 'users', 0, 0);
     setState(() {
       _status = STATUS.ACCEPTED;
     });
@@ -106,18 +121,23 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
     widget.onReject();
   }
 
+  void _handleHideQuestionnaire() {
+    //TODO: Deberíamos de guardar que el estudiante rechazó el cuestionario
+    setState(() { 
+      _status = STATUS.REJECTED;
+    });
+    widget.onReject();
+  }  
+
   void _handleTimeout() {
   }
 
   void handleGetQuestions(){
-    // HENRY: ESTRUCTURA
-    print(widget.questionnaire['questionnaireId']);
     Firestore.instance.document('questionnaires/${widget.questionnaire['questionnaireId']}').snapshots().listen((doc){
       List<QuestionnaireQuestion> questionnaireQuestionList = new List<QuestionnaireQuestion>();
         if(doc.exists){
           List<QuestionnaireQuestionAnswer> questionnaireAnswersList = new List<QuestionnaireQuestionAnswer>(); 
           for(var question in doc.data['questions']){
-            print(question['answers']);
             for(var answer in question['answers']) {
               questionnaireAnswersList.add(
                 QuestionnaireQuestionAnswer(
@@ -131,9 +151,10 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
                 doc.documentID,
                 question['question'],
                 question['time'],
-                question['index'] + 1,
+                question['index'],
                 question['correctAnswer'],
                 questionnaireAnswersList,
+                question['answers'].length,
               )
             );
           }
@@ -155,9 +176,9 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
   }
 
   Widget renderQuestion() {
-    QuestionnaireQuestion question = _questionnaire.questions[_questionnaire.questionIndex];
-    print(question);
+    QuestionnaireQuestion question = _questionnaire.questions[_questionnaireIndex];
     return InteractQuestion(
+      key: Key('$_questionnaireIndex'),
       id: question.id,
       questionnarieId: _questionnaire.id,
       question: question.question,
@@ -165,7 +186,7 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
       index: question.questionIndex,
       questionsLength: _questionnaire.questionsLength,
       onTimeout: _handleTimeout,
-      totalOfAnswers: question.answers.length,
+      totalOfAnswers: question.answerLength,
       correctAnswer: question.correctAnswer,
     );
   }

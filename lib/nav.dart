@@ -1152,6 +1152,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                         questionnaire: _questionnaireData,
                         onReject: _handleQuestionsReject,
                         questionnaireId: _questionnaireData['questionnaireId'],
+                        questionnaireHide: _handleQuestionsReject,
                       ),
                     ) : Container()
                 ],
