@@ -18,7 +18,7 @@ class DatabaseManager{
   static StorageReference storageRef = FirebaseStorage.instance.ref();
   static Directory tempDir = Directory.systemTemp;
   static FirebaseMessaging _fcm = FirebaseMessaging();
-  static String serverIp = '192.168.43.90:8080';
+  static String serverIp = 'dhca-mobile-classroom.appspot.com';
   static FirebaseMessaging getFcm(){
     return _fcm;
   }
@@ -128,7 +128,7 @@ class DatabaseManager{
       'votesLength': 0,
       'votes': []
     }).then((_){
-      updateQuestion(lesson, question, "1", "comments", "");
+      updateQuestion(lesson, question, "1", "lessonsLength", "");
     });
     return reference.documentID;
   }
@@ -150,7 +150,7 @@ class DatabaseManager{
       'attachment': attachment,
       'votes': [],
     }).then((_){
-      updateLesson(lesson,"1","comments","","");
+      updateLesson(lesson,"1","lessonsLength","","");
     });
     return reference.documentID;
   }
@@ -270,7 +270,7 @@ class DatabaseManager{
       'fileType' : '',
       'description': description,
       'date': date,
-      'comments' : 0
+      'lessonsLength' : 0
     }).then((_){
       addLessonPerCourse(lesson.documentID,course);
       updateCourse(course,"1","lessonsLength");
@@ -283,9 +283,14 @@ class DatabaseManager{
     course.setData({
       'name': name,
       'author': author,
+      'email': Auth.getEmail(),
       'authorId': authorId,
-      'participants': 1,
+      'usersLength': 1,
       'lessonsLength' : 0,
+      'accessibility' : 0,
+      'users': [],
+      'blacklist': [],
+      'requests': [],
     }).then((_){
       addCoursesPerUser(authorId,course.documentID);
       addUsersPerCourse(course.documentID,authorId);
@@ -426,8 +431,8 @@ class DatabaseManager{
     DocumentReference reference = Firestore.instance.document('lessons/' + code);
     Firestore.instance.runTransaction((Transaction transaction) async {
         switch(column){
-          case "comments": {
-            transaction.update(reference, <String, dynamic>{'comments': FieldValue.increment(int.parse(param))});      
+          case "lessonsLength": {
+            transaction.update(reference, <String, dynamic>{'lessonsLength': FieldValue.increment(int.parse(param))});      
             break;
           }
           case "fileExists": {
@@ -446,7 +451,7 @@ class DatabaseManager{
     DocumentReference reference = Firestore.instance.document('courses/' + code);
     Firestore.instance.runTransaction((Transaction transaction) async {
         switch(column){
-          case "participants":
+          case "usersLength":
           case "lessonsLength": {
             transaction.update(reference, <String, dynamic>{column: FieldValue.increment(int.parse(param))});      
             break;
@@ -470,13 +475,13 @@ class DatabaseManager{
     await reference.get().then((snapshot){
       if(snapshot.data != null){
         print('here code: $code');
-        int participants = snapshot.data['participants'];
-        updateCourse(code,"1","participants");
+        int usersLength = snapshot.data['usersLength'];
+        updateCourse(code,"1","usersLength");
         addUsersPerCourse(code,uid);
         addCoursesPerUser(uid,code);
         course = {
           'id': snapshot.data['id'],
-          'participants': participants + 1,
+          'usersLength': usersLength + 1,
           'lessons': snapshot.data['lessons'],
           'name': snapshot.data['name'],
           'author': snapshot.data['author'],
@@ -526,7 +531,7 @@ class DatabaseManager{
     return answersList;
   } 
 
-  static Future<List<dynamic>> requestGet(String path, dynamic data, String route) async {
+  static Future<dynamic> requestAdd(String path, dynamic data, String route) async {
     // set up POST request arguments
     try {
       String url = 'http://' + serverIp + '/' + route;
@@ -563,7 +568,7 @@ class DatabaseManager{
             coursesList.add(
               Course(
                 courseId: course['id'],
-                participants: course['participants'],
+                usersLength: course['usersLength'],
                 lessonsLength: course['lessonsLength'],
                 name: course['name'],
                 author: course['author'],
@@ -596,7 +601,7 @@ static Future<List<Lesson>> getLessonsPerCourseByList(List<String> listString, S
                 lessonId: eachLesson,
                 courseId: courseId,
                 authorId: lesson['authorId'],
-                comments: lesson['comments'],
+                lessonsLength: lesson['lessonsLength'],
                 date: lesson['date'],
                 description: lesson['description'],
                 name: lesson['name'],

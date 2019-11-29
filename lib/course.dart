@@ -13,7 +13,7 @@ class Course extends StatefulWidget{
 
   final String name, author, courseId, authorId;
   final Color color;
-  final int lessonsLength, participants;
+  final int lessonsLength, usersLength;
   final bool owner;
 
   const Course({
@@ -21,7 +21,7 @@ class Course extends StatefulWidget{
     @required this.author,
     @required this.authorId, 
     @required this.lessonsLength,
-    @required this.participants,
+    @required this.usersLength,
     @required this.courseId,
     this.color,
     this.owner: false,
@@ -37,7 +37,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
   Animation<double> _sizeFloat, _opacityFloat;
   Animation<Color> _deleteBackgroundColorFloat, _deleteTextColorFloat;
   bool _disabled;
-  String _lessons, _participants, _name;
+  String _lessons, _usersLength, _name;
   WidgetPasser _deactivateListener;
 
   @override
@@ -60,7 +60,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
       }
     });
 
-    _participants = '${widget.participants}';
+    _usersLength = '${widget.usersLength}';
     _lessons = '${widget.lessonsLength}';
     _name = '${widget.name}';
 
@@ -108,7 +108,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
           setState(() {
             _name = value['name'];
             _lessons = value['lessonsLength'].toString();
-            _participants = value['participants'].toString();
+            _usersLength = value['usersLength'].toString();
           });
         } 
       }
@@ -210,7 +210,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
                   name: _name,
                   courseId: widget.courseId,
                   author: widget.author,
-                  participants: widget.participants,
+                  usersLength: widget.usersLength,
                   owner: widget.owner,
                   authorId: widget.authorId
                 ),
@@ -321,7 +321,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
                                   Container(
                                     padding: EdgeInsets.only(top: 2),
                                     child: Text(
-                                      _participants,
+                                      _usersLength,
                                       style: TextStyle(
                                         color: _deleteTextColorFloat.value,
                                         fontWeight: FontWeight.bold,

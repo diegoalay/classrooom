@@ -11,7 +11,7 @@ import 'notify.dart';
 class Lesson extends StatefulWidget{
   final String name, description, lessonId, date, courseId, fileType, filePath;
   String authorId;
-  int comments;
+  int lessonsLength;
   final bool owner, fileExists;
   
 
@@ -25,7 +25,7 @@ class Lesson extends StatefulWidget{
     this.fileType: 'pdf',
     this.description: '',
     this.date: '',
-    this.comments: 0,
+    this.lessonsLength: 0,
     this.owner: false,
   });
 
@@ -36,7 +36,7 @@ class _LessonState extends State<Lesson> with TickerProviderStateMixin, Automati
   AnimationController _boxResizeOpacityController, _lessonDeleteController;
   Animation<double> _opacityFloat;
   String _date, _description;
-  String _comments, _name;
+  String _lessonsLength, _name;
   Animation<Color> _deleteBackgroundColorFloat, _deleteTextColorFloat;
   bool _disabled;
   WidgetPasser _addBarModePasser;
@@ -48,7 +48,7 @@ class _LessonState extends State<Lesson> with TickerProviderStateMixin, Automati
   void initState() {
     String day = widget.date;
 
-    _comments = '${widget.comments}';
+    _lessonsLength = '${widget.lessonsLength}';
 
     _date = '${widget.date}';
     _name = '${widget.name}';
@@ -92,7 +92,7 @@ class _LessonState extends State<Lesson> with TickerProviderStateMixin, Automati
         var value = snapshot.data;
         if(this.mounted){
           setState(() {
-            _comments = value['comments'].toString();
+            _lessonsLength = value['lessonsLength'].toString();
             _description = value['description'];
             _name = value['name'];
             _date = value['date'];
@@ -192,7 +192,7 @@ class _LessonState extends State<Lesson> with TickerProviderStateMixin, Automati
                                   ),
                                 ),
                                 Text(
-                                  _comments,
+                                  _lessonsLength,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: _deleteTextColorFloat.value,

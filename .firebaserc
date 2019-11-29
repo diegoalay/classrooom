@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "classroom-75ebf"
+    "default": "classroom-75ebf",
+    "classroom-functions": "dhca-mobile-classroom"
   }
 }

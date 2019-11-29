@@ -31,45 +31,53 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
       print(e);
     }
     if(_contentQR != null){
-      DatabaseManager.searchInArray("coursesPerUser", Auth.uid, "courses", _contentQR).then((valid){
-        if(!valid){
-          DatabaseManager.addCourseByAccessCode(_contentQR,Auth.uid).then((dynamic text){
-            if(text == null){  
-              setState(() {
-                Notify.show(
-                  context: context,
-                  text: 'El curso no existe.',
-                  actionText: 'Ok',
-                  backgroundColor: Colors.red[200],
-                  textColor: Colors.black,
-                  actionColor: Colors.black,
-                  onPressed: (){
-                    
-                  }
-                );                                
-              });            
-            }else{
-              String textCourse = json.encode(text);
-              print(textCourse);
-              _coursePasser.sender.add(textCourse);                              
-            }              
-          }); 
-        }else{
-          Notify.show(
-            context: context,
-            text: 'El curso ya ha sido agregado.',
-            actionText: 'Ok',
-            backgroundColor: Colors.red[200],
-            textColor: Colors.black,
-            actionColor: Colors.black,
-            onPressed: (){
-              
-            } 
-          );                            
+      var path = 'coursesPerUser/${Auth.uid}';
+      var data = {
+          'obj': {
+              'courseId': _contentQR,
+          },
+          'user': {
+              'id': Auth.uid,
+              'email': Auth.getEmail(),
+              'name': Auth.getName(),
+          },
+      };
+      DatabaseManager.requestAdd(path, data, 'addCourseByAccessCode').then((response){
+        if(response['status'] == 1){
+          dynamic course = response['course'];
+          var text = {
+            'id': course['id'],
+            'usersLength': course['usersLength'] + 1,
+            'lessons': course['lessons'],
+            'name': course['name'],
+            'author': course['author'],
+            'authorId': course['authorId'],
+            'owner': false
+          };
+          String textCourse = json.encode(text);
+          _coursePasser.sender.add(textCourse);     
+        } else {
+          print(response);
+          // if(this.mounted) {
+          //   setState(() {
+          //     Notify.show(
+          //       context: context,
+          //       text: response['message'],
+          //       actionText: 'Ok',
+          //       backgroundColor: Colors.red[200],
+          //       textColor: Colors.black,
+          //       actionColor: Colors.black,
+          //       onPressed: (){
+                  
+          //       }
+          //     );
+          //   });             
+          // }
         }
-      });                 
+      });                                           
     }
   }
+
 
   void getCourses(){
     DatabaseManager.getCoursesPerUser().then(
@@ -107,7 +115,7 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
             _coursesList.add(
               Course(
                 courseId: jsonCourse['id'],
-                participants: jsonCourse['participants'],
+                usersLength: jsonCourse['usersLength'],
                 name: jsonCourse['name'],
                 author: jsonCourse['author'],
                 authorId: jsonCourse['authorId'],

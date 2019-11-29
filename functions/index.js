@@ -31,14 +31,14 @@ exports.answersNotifications = functions.firestore.document('lessons/{lessonId}/
 
 exports.lessonNotifications = functions.firestore.document('lessons/{lessonId}').onCreate(async snapshot => {
   const ref = snapshot.data();
-  console.log(`new lesson ${ref}`);
+  console.log(ref);
   const usersRef = await admin.firestore().collection('usersPerCourse').doc(ref.courseId).get();
   var users = (usersRef.data())['users'];
   var tokensRef = admin.firestore().collection('users');
   console.log(`users ${users}`);
   if(!(users.empty)){
     users.forEach(function(user){
-      if(user !== ref.authorId) tokensRef = tokensRef.where('uid', '==', user);
+      if(user !== ref.authorId) tokensRef = tokensRef.where('uid', '=-', user);
     });
     tokensRef = await tokensRef.get();
     if (tokensRef.empty) {

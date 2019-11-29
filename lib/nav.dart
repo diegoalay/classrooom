@@ -320,7 +320,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
               'authorId': authorId,
               'author' : author,
               'lessons' : 0,
-              'participants' : 1, 
+              'usersLength' : 1, 
               'id': id,
               'owner': true,
             };
@@ -340,7 +340,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
           //   'day' : nowDate.day,
           //   'month' : nowDate.month, 
           //   'year': nowDate.year,
-          //   'comments': 0,
+          //   'lessonsLength': 0,
           // };
           // String textLesson = json.encode(text);
           // Nav.lessonPasser.sendWidget.add(textLesson);
@@ -353,52 +353,56 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
           }
         });
       }else if(Nav.addBarMode == AddBarMode.LINK_COURSE){
-        DatabaseManager.searchInArray('coursesPerUser', Auth.uid,'courses',val).then((valid){
-          if(!valid){
-            DatabaseManager.addCourseByAccessCode(val,Auth.uid).then((dynamic text){
-              if(text == null){  
-                setState(() {
-                  Notify.show(
-                    context: this.context,
-                    text: 'El curso no existe.',
-                    actionText: 'Ok',
-                    backgroundColor: Colors.red[200],
-                    textColor: Colors.black,
-                    actionColor: Colors.black,
-                    onPressed: (){
-                      
-                    }
-                  );   
-                  print('NO EXISTE');                               
-                });            
-              }else{
-                String textCourse = json.encode(text);
-                print(textCourse);
-                Nav.coursePasser.sender.add(textCourse);
-                _addButtonController.reverse();
-                _addBarController.reverse().then((val){
-                  _addBarTextfieldController.text = '';
-                  if(_addBarAlertController.status != AnimationStatus.dismissed){
-                    _addBarAlertController.reverse();
-                  }
-                });                            
-              }              
-            }); 
-          }else{
-            Notify.show(
-              context: this.context,
-              text: 'El curso ya ha sido agregado.',
-              actionText: 'Ok',
-              backgroundColor: Colors.red[200],
-              textColor: Colors.black,
-              actionColor: Colors.black,
-              onPressed: (){
-                
-              } 
-            );                           
-            print('DUPLICADO'); 
+        var path = 'coursesPerUser/${Auth.uid}';
+        var data = {
+            'obj': {
+                'courseId': val,
+            },
+            'user': {
+                'id': Auth.uid,
+                'email': Auth.getEmail(),
+                'name': Auth.getName(),
+            },
+        };
+        DatabaseManager.requestAdd(path, data, 'addCourseByAccessCode').then((response){
+          if(response['status'] == 1){
+            dynamic course = response['course'];
+            var textCourse = {
+              'id': course['id'],
+              'usersLength': course['usersLength'] + 1,
+              'lessons': course['lessons'],
+              'name': course['name'],
+              'author': course['author'],
+              'authorId': course['authorId'],
+              'owner': false
+            };
+            Nav.coursePasser.sender.add(json.encode(textCourse));
+            _addButtonController.reverse();
+            _addBarController.reverse().then((val){
+              _addBarTextfieldController.text = '';
+              if(_addBarAlertController.status != AnimationStatus.dismissed){
+                _addBarAlertController.reverse();
+              }
+            });    
+          } else {
+            print(response);
+            // if(this.mounted) {
+            //   setState(() {
+            //     Notify.show(
+            //       context: context,
+            //       text: response['message'],
+            //       actionText: 'Ok',
+            //       backgroundColor: Colors.red[200],
+            //       textColor: Colors.black,
+            //       actionColor: Colors.black,
+            //       onPressed: (){
+                    
+            //       }
+            //     );
+            //   });             
+            // }
           }
-        });                                                                      
+        });                                                                    
       }else if(Nav.addBarMode == AddBarMode.CHANGE_DESCRIPTION){
         print('DESCRIPCION: $val');
         print('CURSO: ${widget.courseId}');
@@ -664,7 +668,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                   Course.deactivateListener.sender.add('deactivate');    
                   DatabaseManager.deleteFromArray("coursesPerUser",Auth.uid,"courses",widget.courseId).then((_){
                   DatabaseManager.deleteFromArray("usersPerCourse", widget.courseId,"users", Auth.uid);
-                  DatabaseManager.updateCourse(widget.courseId, "-1", "participants");
+                  DatabaseManager.updateCourse(widget.courseId, "-1", "usersLength");
                 });
                 Navigator.of(context).pop();
               },

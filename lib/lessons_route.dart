@@ -14,7 +14,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LessonsRoute extends StatefulWidget{
   final String author, name, courseId, authorId;
-  final int participants;
+  final int usersLength;
   final bool owner;
 
   const LessonsRoute({
@@ -22,7 +22,7 @@ class LessonsRoute extends StatefulWidget{
     @required this.author,
     @required this.name,
     @required this.courseId,
-    this.participants: 1,
+    this.usersLength: 1,
     this.owner: false,
   });
 
@@ -34,7 +34,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
   ScrollController _scrollController;
   AnimationController _qrHeightController;
   Animation<Offset> _qrOffsetFloat;
-  String _participants, _name;
+  String _usersLength, _name;
   bool _disabled;
 
   List<Lesson> _lessons;
@@ -61,7 +61,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
     );
 
     _lessonPasser = Nav.lessonPasser;
-    _participants = '${widget.participants}';
+    _usersLength = '${widget.usersLength}';
     _name = '${widget.name}';
     _scrollController = ScrollController();
 
@@ -77,7 +77,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
         if(this.mounted){
           setState(() {
             _name = value['name'];
-            _participants = value['participants'].toString();
+            _usersLength = value['usersLength'].toString();
           });
         } 
       }
@@ -95,7 +95,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
     //               lessonId: doc.document.documentID,
     //               name : doc.document['name'],
     //               date : doc.document['date'],
-    //               comments: doc.document['comments'],
+    //               lessonsLength: doc.document['lessonsLength'],
     //               owner: widget.owner,
     //               authorId: widget.authorId,
     //               courseId: widget.courseId,
@@ -123,7 +123,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
                     lessonId: doc.document.documentID,
                     name : doc.document['name'],
                     date : doc.document['date'],
-                    comments: doc.document['comments'],
+                    lessonsLength: doc.document['lessonsLength'],
                     owner: widget.owner,
                     authorId: widget.authorId,
                     courseId: widget.courseId,
@@ -134,9 +134,11 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
                   )
                 );
               });
-            }            
+            }      
           }else if(doc.type == DocumentChangeType.removed){
-            
+            print('change');      
+          }else if(doc.type == DocumentChangeType.removed){
+            print('delete');
           }
         }
       }
@@ -155,7 +157,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
                 name: jsonLesson['name'],
                 date: jsonLesson['date'],
                 description: jsonLesson['description'],
-                comments: jsonLesson['comments'],
+                lessonsLength: jsonLesson['lessonsLength'],
                 owner: widget.owner,
                 authorId: widget.authorId,
               )
@@ -247,7 +249,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
                         Container(
                           padding: EdgeInsets.only(top: 2),
                           child: Text(
-                            _participants,
+                            _usersLength,
                             style: TextStyle(
                               color: Theme.of(context).accentColor,
                               fontWeight: FontWeight.bold,

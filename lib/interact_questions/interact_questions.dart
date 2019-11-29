@@ -107,7 +107,7 @@ class _InteractQuestionsState extends State<InteractQuestions> with TickerProvid
 
 
   void _handleAcceptTap() {
-    DatabaseManager.updateQuestionnaire(widget.questionnaire['questionnaireId'], '${Auth.uid}-${Auth.getEmail()}-${Auth.getName()}', 'users', 0, 0);
+    DatabaseManager.updateQuestionnaire(widget.questionnaire['questionnaireId'], Auth.uid, 'users', 0, 0);
     setState(() {
       _status = STATUS.ACCEPTED;
     });
