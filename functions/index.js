@@ -31,7 +31,7 @@ exports.answersNotifications = functions.firestore.document('lessons/{lessonId}/
 
 exports.lessonNotifications = functions.firestore.document('lessons/{lessonId}').onCreate(async snapshot => {
   const ref = snapshot.data();
-  console.log(ref);
+  console.log(`new lesson ${ref}`);
   const usersRef = await admin.firestore().collection('usersPerCourse').doc(ref.courseId).get();
   var users = (usersRef.data())['users'];
   var tokensRef = admin.firestore().collection('users');
