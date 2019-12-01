@@ -65,6 +65,20 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
     }
   }
 
+
+  void getCourses(){
+    DatabaseManager.getCoursesPerUser().then(
+      (List<String> ls) => setState(() {
+        _coursesIdList = ls;
+        DatabaseManager.getCoursesPerUserByList(_coursesIdList, Auth.uid).then(
+          (List<Course> lc) => setState(() {
+            _coursesList = lc;
+          })
+        );         
+      })
+    );    
+  }
+
   @override
   void initState() {
     super.initState();
@@ -83,6 +97,9 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
 
     _coursesList = List<Course>();
     _coursePasser = Nav.coursePasser;
+    if(_coursesList.isEmpty){
+      // getCourses();
+    }
 
     CoursesRoute.activateQRPasser.receiver.listen((value){
       if(value == 'QR'){

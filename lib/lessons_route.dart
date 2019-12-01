@@ -79,37 +79,71 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
       }
     });
 
-    Firestore.instance.collection("lessons").where('courseId', isEqualTo: widget.courseId).where('status', isEqualTo: true).snapshots().listen((snapshot){
-      List<DocumentChange> docs = snapshot.documentChanges;
-      if(docs != null){
-        for(var doc in docs){
-          if(doc.type == DocumentChangeType.added){
-            if(this.mounted){
-              setState(() {
-                _lessons.add(Lesson(
-                    lessonId: doc.document.documentID,
-                    name : doc.document['name'],
-                    date : doc.document['date'],
-                    lessonsLength: doc.document['lessonsLength'],
-                    owner: widget.owner,
-                    authorId: widget.authorId,
-                    courseId: widget.courseId,
-                    fileType: doc.document['fileType'],
-                    fileExists: doc.document['fileExists'],
-                    filePath: doc.document['filePath'],                    
-                    description: doc.document['description']
-                  )
-                );
-              });
-            }      
-          }else if(doc.type == DocumentChangeType.removed){
-            print('change');      
-          }else if(doc.type == DocumentChangeType.removed){
-            print('delete');
+    if(widget.authorId == Auth.uid){
+      Firestore.instance.collection("lessons").where('courseId', isEqualTo: widget.courseId).snapshots().listen((snapshot){
+        List<DocumentChange> docs = snapshot.documentChanges;
+        if(docs != null){
+          for(var doc in docs){
+            if(doc.type == DocumentChangeType.added){
+              if(this.mounted){
+                setState(() {
+                  _lessons.add(Lesson(
+                      lessonId: doc.document.documentID,
+                      name : doc.document['name'],
+                      date : doc.document['date'],
+                      lessonsLength: doc.document['lessonsLength'],
+                      owner: widget.owner,
+                      authorId: widget.authorId,
+                      courseId: widget.courseId,
+                      fileType: doc.document['fileType'],
+                      fileExists: doc.document['fileExists'],
+                      filePath: doc.document['filePath'],                    
+                      description: doc.document['description']
+                    )
+                  );
+                });
+              }      
+            }else if(doc.type == DocumentChangeType.removed){
+              print('change');      
+            }else if(doc.type == DocumentChangeType.removed){
+              print('delete');
+            }
           }
         }
-      }
-    });
+      });      
+    } else {
+      Firestore.instance.collection("lessons").where('courseId', isEqualTo: widget.courseId).where('status', isEqualTo: true).snapshots().listen((snapshot){
+        List<DocumentChange> docs = snapshot.documentChanges;
+        if(docs != null){
+          for(var doc in docs){
+            if(doc.type == DocumentChangeType.added){
+              if(this.mounted){
+                setState(() {
+                  _lessons.add(Lesson(
+                      lessonId: doc.document.documentID,
+                      name : doc.document['name'],
+                      date : doc.document['date'],
+                      lessonsLength: doc.document['lessonsLength'],
+                      owner: widget.owner,
+                      authorId: widget.authorId,
+                      courseId: widget.courseId,
+                      fileType: doc.document['fileType'],
+                      fileExists: doc.document['fileExists'],
+                      filePath: doc.document['filePath'],                    
+                      description: doc.document['description']
+                    )
+                  );
+                });
+              }      
+            }else if(doc.type == DocumentChangeType.removed){
+              print('change');      
+            }else if(doc.type == DocumentChangeType.removed){
+              print('delete');
+            }
+          }
+        }
+      });
+    }
 
     _lessonPasser.receiver.listen((newLesson){
       if(newLesson != null){

@@ -7,6 +7,7 @@ import 'package:classroom/interact_route.dart';
 import 'package:classroom/database_manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'notify.dart';
+import 'package:classroom/auth.dart';
 
 class Lesson extends StatefulWidget{
   final String name, description, lessonId, date, courseId, fileType, filePath;
@@ -94,12 +95,15 @@ class _LessonState extends State<Lesson> with TickerProviderStateMixin, Automati
         var value = snapshot.data;
         if(this.mounted){
           setState(() {
-            if(value['status'] && value['authorId'] != widget.authorId) {
+            print(widget.authorId);
+            print(value['authorId']);
+            print(value['status']);
+            if(value['status']) {
               _lessonsLength = value['lessonsLength'].toString();
               _description = value['description'];
               _name = value['name'];
               _date = value['date'];
-            } else {
+            } else if (value['status'] == false && value['authorId'] != Auth.uid){
               //HENRITO LINDO DE MI CORAZON
               _deleteLesson();
             }
