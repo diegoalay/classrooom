@@ -13,6 +13,7 @@ import 'package:classroom/database_manager.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:classroom/utils/file_types.dart';
 
 class InteractRoute extends StatefulWidget{
   
@@ -46,10 +47,9 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
   Widget _presentation, _uploadPresentation;
   WidgetPasser _questionPasser, _pathPasser, _setQuestionsSort;
   ScrollController _scrollController;
-  bool _isPresentation, _presentationLoaded, _lessonDisabled, _courseDisabled, _fileExists, _sortByPage, _fileStatus;
+  bool _presentationLoaded, _lessonDisabled, _courseDisabled, _fileExists, _sortByPage, _fileStatus;
   int _presentationActualPage;
-  bool _isVideo;
-  int _fileTime;
+  int _fileTime, _fileType;
   Future<String> getFilePath() async {
     String filePath = "";
     try {
@@ -71,8 +71,6 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
     super.initState();
     _filePath = '';
     _fileExists = false;
-    _isVideo = false;
-    _isPresentation = false;
     _presentationLoaded = false;
     _lessonDisabled = false;
     _courseDisabled = false;
@@ -80,6 +78,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
     _fileStatus = false;
     _questionToAnswer = '';
     _fileTime = 0;
+    _fileType = FILE_TYPE.NO_FILE.index;
 
     _presentationActualPage = 0;
 
@@ -120,10 +119,8 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
       if(snapshot.exists) {
         var value = snapshot.data;
         if(this.mounted){
-          if(value['fileType'] == 'url') setState(() { _isVideo = true; });
-          else setState(() { _isVideo = false; });
-          if(value['fileType'] == 'pdf') setState(() { _isPresentation = true; });
-          else setState(() { _isPresentation = false; });          
+          if(value['fileType'] == 'url') setState(() { _fileType = FILE_TYPE.VIDEO.index; });
+          else if(value['fileType'] == 'pdf') setState(() { _fileType = FILE_TYPE.PDF.index; });        
           if(_fileTime != value['fileTime']  || value['fileStatus'] != _fileStatus) showFile(value['fileType'],value['fileStatus']);
           if(value['fileExists']) {
             setState(() {
@@ -234,7 +231,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
             minutes: doc.document.data['minutes'],                
             votesLength: doc.document.data['votesLength'],
             attachment: '${doc.document.data['attachment']}',
-            isVideo: _isVideo,
+            isVideo: _fileType == FILE_TYPE.VIDEO.index,
             index: InteractRoute.index++,
           );
           if(question.authorId == Auth.uid) question.mine = true;
@@ -282,7 +279,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
                 owner: jsonQuestion['owner'],
                 mine: jsonQuestion['mine'],
                 index: InteractRoute.index++,
-                isVideo: _isVideo,
+                isVideo: _fileType == FILE_TYPE.VIDEO.index,
               )
             );
             _scrollController.animateTo(
@@ -328,11 +325,11 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
   }
 
   Widget _getPresentation(BuildContext context){
-    if(_isVideo && _presentationLoaded){
+    if(_fileType == FILE_TYPE.VIDEO.index && _presentationLoaded){
       return YouTubeVideo(
         videoId: _filePath,
       );
-    }if(!_isPresentation && _presentationLoaded || !_fileStatus){
+    }if(!(_fileType == FILE_TYPE.PDF.index) && _presentationLoaded || !_fileStatus){
       return Container(
         margin: EdgeInsets.symmetric(horizontal: 3),
         child: Row(
@@ -377,7 +374,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
       itemCount: _actualQuestions.length + 1,
       itemBuilder: (context, index){
         if(index == 0){
-          if(_isVideo){
+          if(_fileType == FILE_TYPE.VIDEO.index){
             return Container(
                 key: Key('video'),
                 child: _getPresentation(context),
