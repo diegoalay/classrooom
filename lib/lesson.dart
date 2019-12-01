@@ -14,21 +14,24 @@ class Lesson extends StatefulWidget{
   String authorId;
   int lessonsLength;
   final bool owner, fileExists;
+  final Function onLessonDelete;
   
 
   Lesson({
+    Key key,
     @required this.lessonId,
     @required this.courseId,
     @required this.authorId,
     @required this.name,
     @required this.fileExists,
+    @required this.onLessonDelete,
     this.filePath: '',
     this.fileType: 'pdf',
     this.description: '',
     this.date: '',
     this.lessonsLength: 0,
     this.owner: false,
-  });
+  }): super(key: key);
 
   _LessonState createState() => _LessonState();
 }
@@ -104,8 +107,9 @@ class _LessonState extends State<Lesson> with TickerProviderStateMixin, Automati
               _name = value['name'];
               _date = value['date'];
             } else if (value['status'] == false && value['authorId'] != Auth.uid){
-              //HENRITO LINDO DE MI CORAZON
-              _deleteLesson();
+              _boxResizeOpacityController.reverse().then((_) {
+                widget.onLessonDelete(widget.lessonId);
+              });
             }
           });
         } 

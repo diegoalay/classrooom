@@ -47,7 +47,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
   void initState() {
     super.initState();
     if(widget.color == null){
-      _color = Colors.redAccent[100];
+      _color = Color.fromARGB(255, 0, 11, 43);
     }else{
       _color = widget.color;
     }
@@ -190,7 +190,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
     }
 
     _deleteTextColorFloat = ColorTween(
-      begin: Theme.of(context).accentColor,
+      begin: widget.owner ? Theme.of(context).primaryColorLight : Theme.of(context).accentColor,
       end: Colors.grey,
     ).animate(
       CurvedAnimation(
@@ -285,13 +285,13 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
                             alignment: Alignment(0, 0),
                             height: 20,
                             decoration: BoxDecoration(
-                              color: _deleteTextColorFloat.value,
+                              color: widget.owner ? Colors.transparent : _deleteTextColorFloat.value,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
                               _lessons + ' lecciones',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: widget.owner ? Theme.of(context).primaryColorLight : Colors.white,
                               ),
                             ),
                           ),

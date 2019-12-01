@@ -394,14 +394,14 @@ class _QuestionState extends State<Question>
           margin: EdgeInsets.only(right: 4),
           child: Icon(
             FontAwesomeIcons.solidCircle,
-            color: Theme.of(context).primaryColor,
+            color: Colors.white,
             size: 12,
           ),
         ),
         Text(
           ' minuto',
           style: TextStyle(
-            color: Theme.of(context).primaryColor,
+            color: Colors.white,
           ),
         ),
       ],
@@ -412,14 +412,14 @@ class _QuestionState extends State<Question>
           margin: EdgeInsets.only(right: 4),
           child: Icon(
             FontAwesomeIcons.solidSquare,
-            color: Theme.of(context).primaryColor,
+            color: Colors.white,
             size: 12,
           ),
         ),
         Text(
           ' diapositiva',
           style: TextStyle(
-            color: Theme.of(context).primaryColor,
+            color: Colors.white,
           ),
         ),
       ],
@@ -442,20 +442,29 @@ class _QuestionState extends State<Question>
   Widget _getAttachPosition(){
     if(!widget.mine){
       if(widget.attachment != ''){
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            _getAttachIcon(),
-            Container(
-              margin: EdgeInsets.only(left: 3),
-              child: Text(
-                widget.attachment,
-                style: TextStyle(
-                  color: Theme.of(context).primaryColor,
+        return Container(
+          margin: EdgeInsets.only(top: 4),
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).accentColor,
+            borderRadius: BorderRadius.circular(4)
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              _getAttachIcon(),
+              Container(
+                margin: EdgeInsets.only(left: 3),
+                child: Text(
+                  widget.attachment,
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       }else return Container();
     }else{
@@ -464,36 +473,33 @@ class _QuestionState extends State<Question>
           children: <Widget>[
             Expanded(
               child: Container(
-                padding: EdgeInsets.symmetric(vertical: 9, horizontal: 9),
-                decoration: BoxDecoration(
-                  // color: Color.fromARGB(255, 250, 250, 250),
-                  border: Border(
-                    bottom: BorderSide(
-                      width: 4,
-                      // color: _colorFloatText.value,
-                      color: Color.fromARGB(255, 249, 249, 249)
-                    ),
+                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                child: Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).accentColor,
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        _getAttachIcon(),
-                        Container(
-                          margin: EdgeInsets.only(left: 3),
-                          child: Text(
-                            widget.attachment,
-                            style: TextStyle(
-                              color: Theme.of(context).primaryColor,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          _getAttachIcon(),
+                          Container(
+                            margin: EdgeInsets.only(left: 3),
+                            child: Text(
+                              widget.attachment,
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -509,18 +515,10 @@ class _QuestionState extends State<Question>
         children: <Widget>[
           Expanded(
             child: Container(
-              padding: EdgeInsets.symmetric(vertical: 9, horizontal: 9),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    width: 4,
-                    // color: _colorFloatText.value,
-                    color: Color.fromARGB(255, 249, 249, 249)
-                  ),
-                ),
-              ),
-              child: Row(
+              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
                     widget.author,

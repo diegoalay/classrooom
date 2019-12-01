@@ -88,6 +88,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
               if(this.mounted){
                 setState(() {
                   _lessons.add(Lesson(
+                      key: Key('lesson-${doc.document.documentID}'),
                       lessonId: doc.document.documentID,
                       name : doc.document['name'],
                       date : doc.document['date'],
@@ -98,7 +99,8 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
                       fileType: doc.document['fileType'],
                       fileExists: doc.document['fileExists'],
                       filePath: doc.document['filePath'],                    
-                      description: doc.document['description']
+                      description: doc.document['description'],
+                    onLessonDelete: _handleLessonDelete,
                     )
                   );
                 });
@@ -152,6 +154,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
           setState(() {
             _lessons.add(
               Lesson(
+                key: Key('lesson-${jsonLesson['lessonId']}'),
                 fileExists: jsonLesson['fileExists'],
                 lessonId: jsonLesson['lessonId'],
                 courseId: jsonLesson['courseId'],
@@ -161,6 +164,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
                 lessonsLength: jsonLesson['lessonsLength'],
                 owner: widget.owner,
                 authorId: widget.authorId,
+                onLessonDelete: _handleLessonDelete,
               )
             );
           });
@@ -174,6 +178,13 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
         }
       }
     });    
+  }
+
+  void _handleLessonDelete(String lessonId) {
+    print('ESTO SE EJECUTA');
+    this.setState(() {
+      _lessons = _lessons.where((lesson) => lesson.lessonId != lessonId).toList();
+    });
   }
 
   @override

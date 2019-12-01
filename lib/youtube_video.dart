@@ -99,6 +99,7 @@ class _YouTubeVideoState extends State<YouTubeVideo> with TickerProviderStateMix
         List<String> splittedPosition = position.split(':');
         Duration newPosition = Duration(seconds: int.parse(splittedPosition[0]) * 60 + int.parse(splittedPosition[1]));
         _videoController.seekTo(newPosition);
+        _videoPlayButtonController.forward();
       }
     });
   }
@@ -116,7 +117,7 @@ class _YouTubeVideoState extends State<YouTubeVideo> with TickerProviderStateMix
         if(!_activeSlider){
           _videoDurationBarWidth = value.position.inSeconds/value.duration.inSeconds;
           print(_videoDurationBarWidth);
-          _sliderValue = _videoDurationBarWidth.isNaN ? 0 : _videoDurationBarWidth;
+          _sliderValue = _videoDurationBarWidth.isNaN ? 0 : _videoDurationBarWidth == double.infinity ? 0 : _videoDurationBarWidth;
           // _videoDurationBarWidth = value.position.inSeconds/value.duration.inSeconds + 10/width;
           // _sliderValue = _videoDurationBarWidth * width - 10;
           // if(_sliderValue + 20 > width) _sliderValue = width - 20;
