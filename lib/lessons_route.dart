@@ -69,11 +69,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
 
     Firestore.instance.collection("courses").document(widget.courseId).snapshots().listen((snapshot){
       var value = snapshot.data;
-      if(value == null) {
-        if(this.mounted) setState(() {
-          _disabled = true;
-        });
-      }else{
+      if(value != null) {
         if(this.mounted){
           setState(() {
             _name = value['name'];

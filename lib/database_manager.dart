@@ -268,6 +268,7 @@ class DatabaseManager{
       'fileStatus' : true,
       'filePath' : '',
       'fileType' : '',
+      'fileTime' : '',
       'description': description,
       'date': date,
       'lessonsLength' : 0
@@ -344,6 +345,7 @@ class DatabaseManager{
         );
         var dowurl = await (await uploadTask.onComplete).ref.getDownloadURL();
         var url = dowurl.toString();
+        print('URL DOWNLOAD');
         print(url);
         await updateLesson(lessonId, true, "fileExists", type, url);
         break;        
@@ -436,7 +438,7 @@ class DatabaseManager{
             break;
           }
           case "fileExists": {
-            transaction.update(reference, <String, dynamic>{'fileExists': param, 'fileType': type, 'filePath': filePath});      
+            transaction.update(reference, <String, dynamic>{'fileExists': param, 'fileType': type, 'filePath': filePath, 'fileTime': new DateTime.now().millisecondsSinceEpoch});      
             break;
           }          
           default: {

@@ -16,14 +16,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class InteractRoute extends StatefulWidget{
   
-  final String lessonId, authorId, courseId, filePath;
+  final String lessonId, authorId, courseId;
   static AnimationController questionPositionController, questionOpacityController;
   static List<Question> questions;
   static StreamController<String> questionController;
   static WidgetPasser updateQuestions = WidgetPasser(); 
   static WidgetPasser setQuestionsSort = WidgetPasser();
   static int index = 0;
-  final bool owner, isVideo, fileExists;
+  final bool owner;
   final WidgetPasser addBarModePasser;
   static String questionId;
   
@@ -31,9 +31,6 @@ class InteractRoute extends StatefulWidget{
     @required this.lessonId,
     @required this.authorId,
     @required this.courseId,
-    @required this.isVideo,
-    this.filePath,
-    this.fileExists: false,
     this.owner: false,
     this.addBarModePasser
   });
@@ -45,13 +42,14 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
   Stream<String> _questionStream;
   Animation<Offset> _offsetFloat;
   Animation<double> _opacityFloat;
-  String _questionToAnswer;
+  String _questionToAnswer, _filePath;
   Widget _presentation, _uploadPresentation;
   WidgetPasser _questionPasser, _pathPasser, _setQuestionsSort;
   ScrollController _scrollController;
-  bool _presentationExist, _presentationLoaded, _lessonDisabled, _courseDisabled, _fileExists, _sortByPage;
+  bool _isPresentation, _presentationLoaded, _lessonDisabled, _courseDisabled, _fileExists, _sortByPage, _fileStatus;
   int _presentationActualPage;
-
+  bool _isVideo;
+  int _fileTime;
   Future<String> getFilePath() async {
     String filePath = "";
     try {
@@ -71,14 +69,17 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _fileExists = widget.fileExists;
-    _presentationExist = false;
+    _filePath = '';
+    _fileExists = false;
+    _isVideo = false;
+    _isPresentation = false;
     _presentationLoaded = false;
     _lessonDisabled = false;
     _courseDisabled = false;
     _sortByPage = false;
-
+    _fileStatus = false;
     _questionToAnswer = '';
+    _fileTime = 0;
 
     _presentationActualPage = 0;
 
@@ -115,8 +116,27 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
       ),
     );
 
-    showFile();
-
+    Firestore.instance.collection("lessons").document(widget.lessonId).snapshots().listen((snapshot){
+      if(snapshot.exists) {
+        var value = snapshot.data;
+        if(this.mounted){
+          if(value['fileType'] == 'url') setState(() { _isVideo = true; });
+          else setState(() { _isVideo = false; });
+          if(value['fileType'] == 'pdf') setState(() { _isPresentation = true; });
+          else setState(() { _isPresentation = false; });          
+          if(_fileTime != value['fileTime']  || value['fileStatus'] != _fileStatus) showFile(value['fileType'],value['fileStatus']);
+          if(value['fileExists']) {
+            setState(() {
+              _fileExists = value['fileExists'];
+              _filePath = value['filePath'];
+              _fileTime = value['fileTime'];
+              _fileStatus = value['fileStatus'];
+            });
+          }
+        } 
+      }
+    });
+    
     if(widget.owner){
       _uploadPresentation = Column(
         children: <Widget>[
@@ -134,7 +154,6 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
                     if(filePath.isNotEmpty){
                       DatabaseManager.uploadFiles("pdf", widget.lessonId, filePath).then((path){
                         setState(() {
-                          _presentationExist = true; 
                           print('PATH: $path');
                           _presentation = Presentation(
                             file: path,
@@ -144,8 +163,6 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
                       });
                     }
                   });
-                }).then((_){
-                  showFile();
                 });
               },
             ),
@@ -170,7 +187,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
       );
     }else{
       _uploadPresentation = Text(
-        'No hay presentación cargada.',
+        'No hay archivo cargado.',
         style: TextStyle(
           color: Colors.grey,
         ),
@@ -196,8 +213,6 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
       ),
     );
 
-    // InteractRoute.questionPositionController.forward();
-
     Firestore.instance.collection("lessons").document(widget.lessonId).collection("questions").orderBy("votesLength", descending: true).snapshots().listen((snapshot) async{
       InteractRoute.index = 0;
       List<DocumentChange> docs = snapshot.documentChanges;
@@ -219,7 +234,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
             minutes: doc.document.data['minutes'],                
             votesLength: doc.document.data['votesLength'],
             attachment: '${doc.document.data['attachment']}',
-            isVideo: widget.isVideo,
+            isVideo: _isVideo,
             index: InteractRoute.index++,
           );
           if(question.authorId == Auth.uid) question.mine = true;
@@ -238,7 +253,6 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
     });
 
     _questionStream.listen((text) {
-      print('SE RECIBE: ${InteractRoute.questionId}');
       if(text != null){
         setState(() {
           _questionToAnswer = text;
@@ -268,7 +282,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
                 owner: jsonQuestion['owner'],
                 mine: jsonQuestion['mine'],
                 index: InteractRoute.index++,
-                isVideo: widget.isVideo,
+                isVideo: _isVideo,
               )
             );
             _scrollController.animateTo(
@@ -314,11 +328,11 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
   }
 
   Widget _getPresentation(BuildContext context){
-    if(widget.isVideo && _presentationLoaded){
+    if(_isVideo && _presentationLoaded){
       return YouTubeVideo(
-        videoId: widget.filePath,
+        videoId: _filePath,
       );
-    }if(!_presentationExist && _presentationLoaded){
+    }if(!_isPresentation && _presentationLoaded || !_fileStatus){
       return Container(
         margin: EdgeInsets.symmetric(horizontal: 3),
         child: Row(
@@ -363,7 +377,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
       itemCount: _actualQuestions.length + 1,
       itemBuilder: (context, index){
         if(index == 0){
-          if(widget.isVideo){
+          if(_isVideo){
             return Container(
                 key: Key('video'),
                 child: _getPresentation(context),
@@ -468,54 +482,45 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
     );
   }
 
-  void showFile(){
-    DatabaseManager.getFieldInDocument("lessons",widget.lessonId,"fileType","fileStatus").then((data){
-      print("data is: $data");
-      String fileType = data['fileType'];
-      bool fileStatus = data['fileStatus'];
-      if(fileStatus){ 
-        bool presentation = false;
-        if(fileType == "pdf") presentation = true;
-        if(this.mounted){
-          if(presentation == true){
+  void showFile(fileType,fileStatus){
+    print('entra');
+    print(fileStatus);
+    if(fileStatus){ 
+      if(fileType == "pdf") {
+        DatabaseManager.getFiles("pdf", widget.lessonId).then((path){
+          print("ARCHIVO:  $path");
+          if(path != 'EXCEPTION'){
             if(this.mounted) setState(() {
-              _presentationExist = true;
-            });
-            DatabaseManager.getFiles("pdf", widget.lessonId).then((path){
-              print("ARCHIVO:  $path");
-              if(path != 'EXCEPTION'){
-                if(this.mounted) setState(() {
-                  _presentation = Presentation(
-                    file: path,
-                    onPageChange: this._handlePresentationPageChange,
-                  );
-                  _presentationLoaded = true;
-                });
-              }else{
-                if(this.mounted) setState(() {
-                  _presentation = Text(
-                    'EXCEPCION :c',
-                  );
-                  _presentationLoaded = true;
-                });
-              }
+              _presentation = Presentation(
+                file: path,
+                onPageChange: this._handlePresentationPageChange,
+              );
+              _presentationLoaded = true;
             });
           }else{
-            setState(() {
+            if(this.mounted) setState(() {
+              _presentation = Text(
+                'EXCEPCION :c',
+              );
               _presentationLoaded = true;
             });
           }
-        }
-      } else {
+        });
+      }else{
         setState(() {
-          _uploadPresentation = Text(
-            'No hay presentación cargada.',
-            style: TextStyle(
-              color: Colors.grey,
-            ),
-          );   
-        });      
+          _presentationLoaded = true;
+        });
       }
-    }); 
+    } else {
+      setState(() {
+         _presentationLoaded = false;
+        _uploadPresentation = Text(
+          'No hay archivo disponible.',
+          style: TextStyle(
+            color: Colors.grey,
+          ),
+        );   
+      });      
+    }
   }
 }

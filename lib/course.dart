@@ -97,13 +97,21 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
     );
 
     Firestore.instance.collection("courses").document(widget.courseId).snapshots().listen((snapshot){
-      if(!snapshot.exists) {
+      var value = snapshot.data;
+      if(value == null) {
         if(this.mounted) setState(() {
           _deleteCourse();
+          if(Nav.sectionId == 'lessons') {
+            Nav.sectionId = 'courses';
+            Navigator.of(context).pop();
+          } else if(Nav.sectionId == 'interact') {
+            Nav.sectionId = 'courses';
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          }
         });         
         DatabaseManager.deleteDocumentInCollection("lessonsPerCourse",widget.courseId);       
       }else{
-        var value = snapshot.data;
         if(this.mounted){
           setState(() {
             _name = value['name'];

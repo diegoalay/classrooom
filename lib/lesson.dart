@@ -84,8 +84,10 @@ class _LessonState extends State<Lesson> with TickerProviderStateMixin, Automati
       if(!snapshot.exists) {
         if(this.mounted) setState(() {
           _deleteLesson();
-          print(Nav.sectionId);
-          if(Nav.sectionId == 'interact') Navigator.of(context).pop();
+          if(Nav.sectionId == 'interact') {
+            Nav.sectionId = 'lessons';
+            Navigator.of(context).pop();
+          }
         });         
         DatabaseManager.deleteDocumentInCollection("questionsPerLesson",widget.lessonId);
       }else{
@@ -98,6 +100,7 @@ class _LessonState extends State<Lesson> with TickerProviderStateMixin, Automati
               _name = value['name'];
               _date = value['date'];
             } else {
+              //HENRITO LINDO DE MI CORAZON
               _deleteLesson();
             }
           });
@@ -270,10 +273,7 @@ class _LessonState extends State<Lesson> with TickerProviderStateMixin, Automati
                                         authorId: widget.authorId,
                                         lessonId: widget.lessonId,
                                         courseId: widget.courseId,
-                                        fileExists: widget.fileExists,
-                                        filePath: widget.filePath,
                                         owner: widget.owner,
-                                        isVideo: (widget.fileType == "url"),
                                       ),
                                     ); 
                                   })
