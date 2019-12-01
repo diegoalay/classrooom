@@ -65,20 +65,6 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
     }
   }
 
-
-  void getCourses(){
-    DatabaseManager.getCoursesPerUser().then(
-      (List<String> ls) => setState(() {
-        _coursesIdList = ls;
-        DatabaseManager.getCoursesPerUserByList(_coursesIdList, Auth.uid).then(
-          (List<Course> lc) => setState(() {
-            _coursesList = lc;
-          })
-        );         
-      })
-    );    
-  }
-
   @override
   void initState() {
     super.initState();
