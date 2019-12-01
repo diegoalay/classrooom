@@ -511,10 +511,18 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
     } else {
       setState(() {
          _presentationLoaded = false;
-        _uploadPresentation = Text(
-          'No hay archivo disponible.',
-          style: TextStyle(
-            color: Colors.grey,
+        _uploadPresentation = Container(
+          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          margin: EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).accentColor,
+            borderRadius: BorderRadius.circular(100),
+          ),
+          child: Text(
+            'No hay archivo disponible.',
+            style: TextStyle(
+              color: Colors.white,
+            ),
           ),
         );   
       });      
