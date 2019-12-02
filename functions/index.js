@@ -38,7 +38,7 @@ exports.lessonNotifications = functions.firestore.document('lessons/{lessonId}')
   console.log(`users ${users}`);
   if(!(users.empty)){
     users.forEach(function(user){
-      if(user !== ref.authorId) tokensRef = tokensRef.where('uid', '==', user);
+      if(user !== ref.authorId) tokensRef = tokensRef.where('uid', '=-', user);
     });
     tokensRef = await tokensRef.get();
     if (tokensRef.empty) {

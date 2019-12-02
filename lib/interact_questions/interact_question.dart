@@ -1,21 +1,26 @@
 import 'package:classroom/interact_questions/interact_answer.dart';
 import 'package:classroom/interact_questions/page_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:classroom/database_manager.dart';
+import 'package:classroom/auth.dart';
 
 class InteractQuestion extends StatefulWidget {
-  final String question;
-  final int timeToAnswer, index, totalOfQuestions, totalOfAnswers, correctAnswer;
+  final String id, question, questionnarieId;
+  final int timeToAnswer, index, questionsLength, totalOfAnswers, correctAnswer;
   final Function onTimeout;
-
+  
   const InteractQuestion({
+    Key key,
+    @required this.id,
     @required this.question,
     @required this.index,
-    @required this.totalOfQuestions,
+    @required this.questionsLength,
     @required this.totalOfAnswers,
     @required this.correctAnswer,
+    @required this.questionnarieId,
     this.timeToAnswer: 0,
     this.onTimeout,
-  });
+  }): super(key: key);
 
   @override
   _InteractQuestionState createState() => _InteractQuestionState();
@@ -80,7 +85,7 @@ class _InteractQuestionState extends State<InteractQuestion> with TickerProvider
   }
 
   void _handleAnswerTap(int answerCode) {
-    //TODO: Aquí debemos almacenar la respuesta del estudiante.
+    DatabaseManager.updateQuestionnaire(widget.questionnarieId, Auth.uid, 'votes', widget.index, answerCode);
     setState(() {
       _answerSelected = true;
     });
@@ -135,7 +140,7 @@ class _InteractQuestionState extends State<InteractQuestion> with TickerProvider
               Column(
                 children: <Widget>[
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: _renderAnswers(),
                   ),
                   widget.timeToAnswer > 0 ? Row(
@@ -184,14 +189,14 @@ class _InteractQuestionState extends State<InteractQuestion> with TickerProvider
               Column(
                 children: <Widget>[
                   Text(
-                    'Pregunta ${widget.index} de ${widget.totalOfQuestions}',
+                    'Pregunta ${widget.index + 1} de ${widget.questionsLength}',
                     style: TextStyle(
                       color: Colors.white
                     ),
                   ),
                   PageIndicator(
-                    index: widget.index,
-                    totalOfPages: widget.totalOfQuestions,
+                    index: widget.index + 1,
+                    totalOfPages: widget.questionsLength,
                     context: context,
                   )
                 ],

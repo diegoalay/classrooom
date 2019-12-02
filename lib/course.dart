@@ -13,15 +13,15 @@ class Course extends StatefulWidget{
 
   final String name, author, courseId, authorId;
   final Color color;
-  final int lessons, participants;
+  final int lessonsLength, usersLength;
   final bool owner;
 
   const Course({
     @required this.name,
     @required this.author,
     @required this.authorId, 
-    @required this.lessons,
-    @required this.participants,
+    @required this.lessonsLength,
+    @required this.usersLength,
     @required this.courseId,
     this.color,
     this.owner: false,
@@ -37,7 +37,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
   Animation<double> _sizeFloat, _opacityFloat;
   Animation<Color> _deleteBackgroundColorFloat, _deleteTextColorFloat;
   bool _disabled;
-  String _lessons, _participants, _name;
+  String _lessons, _usersLength, _name;
   WidgetPasser _deactivateListener;
 
   @override
@@ -47,7 +47,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
   void initState() {
     super.initState();
     if(widget.color == null){
-      _color = Colors.redAccent[100];
+      _color = Color.fromARGB(255, 0, 11, 43);
     }else{
       _color = widget.color;
     }
@@ -60,8 +60,8 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
       }
     });
 
-    _participants = '${widget.participants}';
-    _lessons = '${widget.lessons}';
+    _usersLength = '${widget.usersLength}';
+    _lessons = '${widget.lessonsLength}';
     _name = '${widget.name}';
 
     _disabled = false;
@@ -97,18 +97,26 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
     );
 
     Firestore.instance.collection("courses").document(widget.courseId).snapshots().listen((snapshot){
-      if(!snapshot.exists) {
+      var value = snapshot.data;
+      if(value == null) {
         if(this.mounted) setState(() {
           _deleteCourse();
+          if(Nav.sectionId == 'lessons') {
+            Nav.sectionId = 'courses';
+            Navigator.of(context).pop();
+          } else if(Nav.sectionId == 'interact') {
+            Nav.sectionId = 'courses';
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          }
         });         
         DatabaseManager.deleteDocumentInCollection("lessonsPerCourse",widget.courseId);       
       }else{
-        var value = snapshot.data;
         if(this.mounted){
           setState(() {
             _name = value['name'];
-            _lessons = value['lessons'].toString();
-            _participants = value['participants'].toString();
+            _lessons = value['lessonsLength'].toString();
+            _usersLength = value['usersLength'].toString();
           });
         } 
       }
@@ -182,7 +190,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
     }
 
     _deleteTextColorFloat = ColorTween(
-      begin: Theme.of(context).accentColor,
+      begin: widget.owner ? Theme.of(context).primaryColorLight : Theme.of(context).accentColor,
       end: Colors.grey,
     ).animate(
       CurvedAnimation(
@@ -210,7 +218,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
                   name: _name,
                   courseId: widget.courseId,
                   author: widget.author,
-                  participants: widget.participants,
+                  usersLength: widget.usersLength,
                   owner: widget.owner,
                   authorId: widget.authorId
                 ),
@@ -277,13 +285,13 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
                             alignment: Alignment(0, 0),
                             height: 20,
                             decoration: BoxDecoration(
-                              color: _deleteTextColorFloat.value,
+                              color: widget.owner ? Colors.transparent : _deleteTextColorFloat.value,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
-                              _lessons + ' clases',
+                              _lessons + ' lecciones',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: widget.owner ? Theme.of(context).primaryColorLight : Colors.white,
                               ),
                             ),
                           ),
@@ -321,7 +329,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin, Automati
                                   Container(
                                     padding: EdgeInsets.only(top: 2),
                                     child: Text(
-                                      _participants,
+                                      _usersLength,
                                       style: TextStyle(
                                         color: _deleteTextColorFloat.value,
                                         fontWeight: FontWeight.bold,

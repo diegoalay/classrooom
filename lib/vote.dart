@@ -4,12 +4,12 @@ import 'package:vibration/vibration.dart';
 
 class Vote extends StatefulWidget{
   final bool voted, showVotes, small;
-  final int votes, index;
+  final int votesLength, index;
   final Function onVote, onUnvote;
 
   const Vote({
     this.voted : false,
-    this.votes : 0,
+    this.votesLength : 0,
     this.index : 0,
     this.onVote,
     this.onUnvote,
@@ -33,7 +33,7 @@ class _VoteState extends State<Vote> with SingleTickerProviderStateMixin{
   void initState() {
     super.initState();
 
-    _votes = widget.votes;
+    _votes = widget.votesLength;
 
     if(widget.small) _iconSize = 16;
     else _iconSize = 20;
@@ -86,9 +86,9 @@ class _VoteState extends State<Vote> with SingleTickerProviderStateMixin{
               }
               _voted = true;
               if(widget.voted){
-                _votes = widget.votes;
+                _votes = widget.votesLength;
               }else{
-                _votes = widget.votes + 1;
+                _votes = widget.votesLength + 1;
               }
               _construcVoteWidget(true, true);
             },
@@ -112,9 +112,9 @@ class _VoteState extends State<Vote> with SingleTickerProviderStateMixin{
               }
               _voted = false;
               if(widget.voted){
-                _votes = widget.votes - 1;
+                _votes = widget.votesLength - 1;
               }else{
-                _votes = widget.votes;
+                _votes = widget.votesLength;
               }
               _construcVoteWidget(false, true);
             },

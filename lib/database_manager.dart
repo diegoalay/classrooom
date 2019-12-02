@@ -1,4 +1,6 @@
 
+import 'dart:convert';
+
 import 'package:classroom/course.dart';
 import 'package:classroom/lesson.dart';
 import 'package:classroom/question.dart';
@@ -10,12 +12,13 @@ import 'dart:async';
 import 'package:path_provider/path_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:http/http.dart' as http;
 
 class DatabaseManager{
   static StorageReference storageRef = FirebaseStorage.instance.ref();
   static Directory tempDir = Directory.systemTemp;
   static FirebaseMessaging _fcm = FirebaseMessaging();
-
+  static String serverIp = 'dhca-mobile-classroom.appspot.com';
   static FirebaseMessaging getFcm(){
     return _fcm;
   }
@@ -90,24 +93,27 @@ class DatabaseManager{
 
 
   static void removeVoteToQuestion(String lessonId, String authorId, String question, String val){
-    updateQuestion(lessonId,question,val,"votesAndUsersVote", authorId);
+    updateQuestion(lessonId,question,val,"votesLengthAndVotes", authorId);
   }
 
   static void addVoteToQuestion(String lessonId, String authorId, String question, String val){   
-    updateQuestion(lessonId,question,val,"votesAndUsersVote", authorId);
+    updateQuestion(lessonId,question,val,"votesLengthAndVotes", authorId);
   }
 
   static void removeVoteToAnswer(String lessonId, String authorId, String question, String answer, String val){
-    updateAnswer(lessonId,question,answer,val,"votesAndUsersVote", authorId);
+    updateAnswer(lessonId,question,answer,val,"votesLengthAndVotes", authorId);
   }
 
   static void addVoteToAnswer(String lessonId, String authorId, String question, String answer, String val){
-    updateAnswer(lessonId,question,answer,val,"votesAndUsersVote", authorId);
+    updateAnswer(lessonId,question,answer,val,"votesLengthAndVotes", authorId);
   }
 
-  static Future<String> addAnswers(String question, String author, String authorId, String lesson, String text, int day, int month, int year, int hours, int minutes, String createdById, String createdByName, String questionText) async{
+  static Future<String> addAnswers(String question, String author, String authorId, String courseId, String lesson, String questionId, String text, int day, int month, int year, int hours, int minutes, String createdById, String createdByName, String questionText) async{
     DocumentReference reference = Firestore.instance.collection('lessons').document(lesson);
     await reference.collection("questions").document(question).collection("answers").document().setData({
+      'courseId': courseId,
+      'lessonId': lesson,
+      'questionId': questionId,
       'text': text,
       'questionText': questionText,
       'author': author,
@@ -119,36 +125,40 @@ class DatabaseManager{
       'year': year,
       'hours': hours,
       'minutes': minutes,
-      'votes': 0,
-      'usersVote': []
+      'votesLength': 0,
+      'votes': []
     }).then((_){
-      updateQuestion(lesson, question, "1", "comments", "");
+      updateQuestion(lesson, question, "1", "lessonsLength", "");
     });
     return reference.documentID;
   }
 
-  static Future<String> addQuestions(String author, String authorId, String lesson, String text, int day, int month, int year, int hours, int minutes, {String attachPosition = ''}) async{
+  static Future<String> addQuestions(String author, String authorId, String courseId, String lesson, String text, int day, int month, int year, int hours, int minutes, {String attachment = ''}) async{
     DocumentReference reference = Firestore.instance.collection('lessons').document(lesson);
     reference.collection("questions").document().setData({
       'text': text,
       'author': author,
+      'lessonId': lesson,
+      'courseId': courseId,
       'authorId': authorId,
       'day': day,
       'month': month,
       'year': year,
       'hours': hours,
       'minutes': minutes,
-      'votes': 0,
-      'attachPosition': attachPosition,
-      'usersVote': [],
+      'votesLength': 0,
+      'attachment': attachment,
+      'votes': [],
     }).then((_){
-      updateLesson(lesson,"1","comments","","");
+      updateLesson(lesson,"1","lessonsLength","","");
     });
     return reference.documentID;
   }
 
   static Future<void> deleteDocumentInCollection(String collection,document) async{
-    await Firestore.instance.collection(collection).document(document).delete();
+    print(collection);
+    print(document);
+    Firestore.instance.collection(collection).document(document).delete();
   }
 
   static Future<void> deleteFromArray(collection,document,field,val) async{
@@ -198,14 +208,20 @@ class DatabaseManager{
     return documentId;
   }
 
-  static Future<dynamic> getFieldInDocument(location,document,field) async{
+  static Future<dynamic> getFieldInDocument(location,document,field,field2) async{
     var val;
+    var val2;
     DocumentReference reference = Firestore.instance.collection(location).document(document);
     await reference.get().then((snapshot){
-      if(snapshot.data != null) val = snapshot[field];     
+      if(snapshot.data != null) {
+        val = snapshot[field];     
+        val2 = snapshot[field2];
+      }
     });
-    if(val == null) return false;
-    return val;
+    Map<dynamic,dynamic> retorno = new Map<dynamic,dynamic>();
+    retorno['fileType'] = val;
+    retorno['fileStatus'] = val2;
+    return retorno;
   }
 
   static Future<bool> searchFieldInCollection(location,collection,field,compare) async{
@@ -222,7 +238,7 @@ class DatabaseManager{
 
   static Future<void> deleteLesson(String lessonId,String courseId) async{
     await deleteDocumentInCollection("lessons", lessonId).then((_){
-      updateCourse(courseId, "-1", "lessons");
+      updateCourse(courseId, "-1", "lessonsLength");
       deleteFromArray("lessonsPerCourse", courseId, "lessons", lessonId);
     });
   } 
@@ -250,14 +266,17 @@ class DatabaseManager{
       'courseName': courseName,
       'name': name,
       'fileExists' : false,
+      'status' : true,
+      'fileStatus' : true,
       'filePath' : '',
       'fileType' : '',
+      'fileTime' : '',
       'description': description,
       'date': date,
-      'comments' : 0
+      'lessonsLength' : 0
     }).then((_){
       addLessonPerCourse(lesson.documentID,course);
-      updateCourse(course,"1","lessons");
+      updateCourse(course,"1","lessonsLength");
     });
     return lesson.documentID;
   }
@@ -267,9 +286,14 @@ class DatabaseManager{
     course.setData({
       'name': name,
       'author': author,
+      'email': Auth.getEmail(),
       'authorId': authorId,
-      'participants': 1,
-      'lessons' : 0,
+      'usersLength': 1,
+      'lessonsLength' : 0,
+      'accessibility' : 0,
+      'users': [],
+      'blacklist': [],
+      'requests': [],
     }).then((_){
       addCoursesPerUser(authorId,course.documentID);
       addUsersPerCourse(course.documentID,authorId);
@@ -282,16 +306,16 @@ class DatabaseManager{
     DocumentReference reference = Firestore.instance.document('lessons/' + lesson + "/questions/" + question + "/answers/" + answer);
     await Firestore.instance.runTransaction((Transaction transaction) async {
       switch(column){
-        case "votes": {
-          transaction.update(reference, <String, dynamic>{'votes': FieldValue.increment(int.parse(param))});      
+        case "votesLength": {
+          transaction.update(reference, <String, dynamic>{'votesLength': FieldValue.increment(int.parse(param))});      
           break;
         }
-        case "votesAndUsersVote": {
+        case "votesLengthAndVotes": {
           DocumentSnapshot snapshot = await transaction.get(reference);
-          List<String> list = List<String>.from(snapshot.data['usersVote']);
+          List<String> list = List<String>.from(snapshot.data['votes']);
           if(param == "-1") list.remove(uid);
           else list.add(uid);
-          transaction.update(reference, <String, dynamic>{'votes': FieldValue.increment(int.parse(param)), 'usersVote': list});      
+          transaction.update(reference, <String, dynamic>{'votesLength': FieldValue.increment(int.parse(param)), 'votes': list});      
           break;
         }        
         default: {
@@ -321,7 +345,11 @@ class DatabaseManager{
             contentType: type,
           ),
         );
-        await updateLesson(lessonId, true, "fileExists", type, filePath);
+        var dowurl = await (await uploadTask.onComplete).ref.getDownloadURL();
+        var url = dowurl.toString();
+        print('URL DOWNLOAD');
+        print(url);
+        await updateLesson(lessonId, true, "fileExists", type, url);
         break;        
       }
       case "url": {
@@ -349,20 +377,50 @@ class DatabaseManager{
   }
   
 
+  static Future<void> updateQuestionnaire(String questionnaireId, String param, String column, int questionIndex, int answerIndex) async{
+    DocumentReference reference = Firestore.instance.document('questionnaires/' + questionnaireId);
+    print(questionnaireId);
+    Firestore.instance.runTransaction((Transaction transaction) async {
+      switch(column){
+        case "users": {
+          DocumentSnapshot snapshot = await transaction.get(reference);   
+          List<String> list = List<String>.from(snapshot.data[column]);
+          if(!list.contains(param)) {
+            list.add(param);    
+            print(param);  
+            transaction.update(reference, <String, dynamic>{column: list});    
+          }
+          break;
+        }  
+        case "votes": {
+          DocumentSnapshot snapshot = await transaction.get(reference); 
+          List<String> list = List<String>.from(snapshot.data[column]);
+          list.add('$param-$questionIndex-$answerIndex');    
+          transaction.update(reference, <String, dynamic>{column: list});            
+          break;
+        }        
+        default: {
+          transaction.update(reference, <String, dynamic>{column: param});    
+          break;
+        }
+      }           
+    });         
+  }
+
   static Future<void> updateQuestion(String lesson, String question, String param, String column, String uid) async{
     DocumentReference reference = Firestore.instance.document('lessons/' + lesson + "/questions/" + question);
     Firestore.instance.runTransaction((Transaction transaction) async {
       switch(column){
-        case "votes": {
-          transaction.update(reference, <String, dynamic>{'votes': FieldValue.increment(int.parse(param))});   
+        case "votesLength": {
+          transaction.update(reference, <String, dynamic>{'votesLength': FieldValue.increment(int.parse(param))});   
           break;
         }
-        case "votesAndUsersVote": {
+        case "votesLengthAndVotes": {
           DocumentSnapshot snapshot = await transaction.get(reference);
-          List<String> list = List<String>.from(snapshot.data['usersVote']);
+          List<String> list = List<String>.from(snapshot.data['votes']);
           if(param == "-1") list.remove(uid);
           else list.add(uid);
-          transaction.update(reference, <String, dynamic>{'votes': FieldValue.increment(int.parse(param)), 'usersVote': list});      
+          transaction.update(reference, <String, dynamic>{'votesLength': FieldValue.increment(int.parse(param)), 'votes': list});      
           break;
         }          
         default: {
@@ -377,15 +435,15 @@ class DatabaseManager{
     DocumentReference reference = Firestore.instance.document('lessons/' + code);
     Firestore.instance.runTransaction((Transaction transaction) async {
         switch(column){
-          case "comments": {
-            transaction.update(reference, <String, dynamic>{'comments': FieldValue.increment(int.parse(param))});      
+          case "lessonsLength": {
+            transaction.update(reference, <String, dynamic>{'lessonsLength': FieldValue.increment(int.parse(param))});      
             break;
           }
           case "fileExists": {
-            transaction.update(reference, <String, dynamic>{'fileExists': param, 'fileType': type, 'filePath': filePath});      
+            transaction.update(reference, <String, dynamic>{'fileExists': param, 'fileType': type, 'filePath': filePath, 'fileTime': new DateTime.now().millisecondsSinceEpoch});      
             break;
           }          
-          default: {;
+          default: {
             transaction.update(reference, <String, dynamic>{column: param});       
             break;
           }
@@ -397,8 +455,8 @@ class DatabaseManager{
     DocumentReference reference = Firestore.instance.document('courses/' + code);
     Firestore.instance.runTransaction((Transaction transaction) async {
         switch(column){
-          case "participants":
-          case "lessons": {
+          case "usersLength":
+          case "lessonsLength": {
             transaction.update(reference, <String, dynamic>{column: FieldValue.increment(int.parse(param))});      
             break;
           }
@@ -420,13 +478,14 @@ class DatabaseManager{
     DocumentReference reference = Firestore.instance.collection('courses').document(code);
     await reference.get().then((snapshot){
       if(snapshot.data != null){
-        int participants = snapshot.data['participants'];
-        updateCourse(code,"1","participants");
+        print('here code: $code');
+        int usersLength = snapshot.data['usersLength'];
+        updateCourse(code,"1","usersLength");
         addUsersPerCourse(code,uid);
         addCoursesPerUser(uid,code);
         course = {
           'id': snapshot.data['id'],
-          'participants': participants + 1,
+          'usersLength': usersLength + 1,
           'lessons': snapshot.data['lessons'],
           'name': snapshot.data['name'],
           'author': snapshot.data['author'],
@@ -450,7 +509,7 @@ class DatabaseManager{
   static Future<List<Answer>> getAnswersPerQuestionByList(String lessonId, String questionId) async{
     List<Answer> answersList = new List<Answer>(); 
     CollectionReference reference = Firestore.instance.collection('lessons').document(lessonId).collection("questions").document(questionId).collection("answers");
-    await reference.orderBy("votes", descending: true).getDocuments().then((snapshot){
+    await reference.orderBy("votesLength", descending: true).getDocuments().then((snapshot){
       List<DocumentSnapshot> docs = snapshot.documents;
       for(var doc in docs){
         answersList.add(
@@ -467,7 +526,8 @@ class DatabaseManager{
             // year: doc['year'],
             // hours: doc['hours'],
             // minutes: doc['minutes'],                
-            votes: doc['votes'],
+            votesLength: doc['votesLength'],
+            
           )
         );  
       }
@@ -475,6 +535,53 @@ class DatabaseManager{
     return answersList;
   } 
 
+  static Future<dynamic> requestChange(String path, dynamic data, String route) async {
+    // set up POST request arguments
+    try {
+      String url = 'http://' + serverIp + '/' + route;
+      Map<String, String> headers = {"Content-type": "application/json"};
+      Map<dynamic,dynamic> obj = {
+        'path': path,
+        'data': data,
+      };
+
+      var jsonObj = jsonEncode(obj);
+      // make POST request
+      var response = await http.post(url, headers: headers, body: jsonObj);
+
+      // check the status code for the result
+      int statusCode = response.statusCode;
+      String body = response.body;
+      return true;
+    }catch (e) {
+      print('error $e');
+      return false;
+    }    
+  }
+
+  static Future<dynamic> requestAdd(String path, dynamic data, String route) async {
+    // set up POST request arguments
+    try {
+      String url = 'http://' + serverIp + '/' + route;
+      Map<String, String> headers = {"Content-type": "application/json"};
+      Map<dynamic,dynamic> obj = {
+        'path': path,
+        'data': data,
+      };
+
+      var jsonObj = jsonEncode(obj);
+      // make POST request
+      var response = await http.post(url, headers: headers, body: jsonObj);
+
+      // check the status code for the result
+      int statusCode = response.statusCode;
+      String body = response.body;
+      return jsonDecode(body);
+    }catch (e) {
+      print('error $e');
+      return null;
+    }    
+  }
 
   static Future<List<Course>> getCoursesPerUserByList(List<String> listString, String uid) async{
     List<Course> coursesList = List<Course>();
@@ -489,8 +596,8 @@ class DatabaseManager{
             coursesList.add(
               Course(
                 courseId: course['id'],
-                participants: course['participants'],
-                lessons: course['lessons'],
+                usersLength: course['usersLength'],
+                lessonsLength: course['lessonsLength'],
                 name: course['name'],
                 author: course['author'],
                 authorId: course['authorId'],
@@ -522,7 +629,7 @@ static Future<List<Lesson>> getLessonsPerCourseByList(List<String> listString, S
                 lessonId: eachLesson,
                 courseId: courseId,
                 authorId: lesson['authorId'],
-                comments: lesson['comments'],
+                lessonsLength: lesson['lessonsLength'],
                 date: lesson['date'],
                 description: lesson['description'],
                 name: lesson['name'],

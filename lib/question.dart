@@ -17,11 +17,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Question extends StatefulWidget {
   static WidgetPasser answerPasser, answeredPasser;
   static String globalQuestionId;
-  final String text, author, authorId, questionId, lessonId, attachPosition;
+  final String text, author, authorId, questionId, lessonId, courseId;
   final bool isVideo;
   String courseAuthorId;
   bool voted, mine, answered, owner;
-  int votes, index, day, month, year, hours, minutes;
+  int votesLength, index, day, month, year, hours, minutes;
+  var attachment;
   StreamController<int> votesController;
   
 
@@ -29,6 +30,7 @@ class Question extends StatefulWidget {
     @required this.text,
     @required this.author,
     @required this.authorId,
+    @required this.courseId,
     @required this.questionId,
     @required this.lessonId,
     @required this.isVideo,
@@ -38,14 +40,14 @@ class Question extends StatefulWidget {
     this.voted: false,
     this.answered: false,
     this.owner: false,
-    this.votes: 0,
+    this.votesLength: 0,
     this.index: 0,
     this.day: 27,
     this.month: 3,
     this.year: 1998,
     this.hours: 11,
     this.minutes: 55,
-    this.attachPosition: '',
+    this.attachment: '',
   });
 
   
@@ -208,7 +210,7 @@ class _QuestionState extends State<Question>
     _boxResizeOpacityController2.forward();
     if (widget.answered) _boxResizeOpacityController.forward();
 
-    Firestore.instance.collection("lessons").document(widget.lessonId).collection("questions").document(widget.questionId).collection("answers").orderBy("votes", descending: true).snapshots().listen((snapshot) async{
+    Firestore.instance.collection("lessons").document(widget.lessonId).collection("questions").document(widget.questionId).collection("answers").orderBy("votesLength", descending: true).snapshots().listen((snapshot) async{
       InteractRoute.index = 0;
       List<DocumentChange> docs = snapshot.documentChanges;
       Answer answer;
@@ -223,7 +225,7 @@ class _QuestionState extends State<Question>
             authorId: doc.document['authorId'],
             lessonId: widget.lessonId,
             questionText: doc.document['questionText'],            
-            votes: doc.document['votes'],
+            votesLength: doc.document['votesLength'],
             mine: (doc.document['authorId'] == Auth.uid)
             // day: answer['day'],
             // month: answer['month'],
@@ -239,7 +241,7 @@ class _QuestionState extends State<Question>
             // }
             answer.owner = true;
           } 
-          List<String> lista = List<String>.from(doc.document['usersVote']); 
+          List<String> lista = List<String>.from(doc.document['votes']); 
           if(lista.contains(Auth.uid)) answer.voted = true;        
           if(this.mounted){
             setState(() {
@@ -267,7 +269,7 @@ class _QuestionState extends State<Question>
               questionText: jsonAnswer['questionText'],
               owner: jsonAnswer['owner'],
               voted: false,
-              votes: 0,
+              votesLength: 0,
             ));
           });
         }
@@ -348,11 +350,13 @@ class _QuestionState extends State<Question>
                   child: GestureDetector(
                     onTap: (){
                       if(!_disabled){
-                        DatabaseManager.deleteDocumentInCollection("lessons/" + widget.lessonId + "/questions/", widget.questionId);
-                        _deleteHeightController.reverse();
-                        _boxColorController.forward();
-                        _expandAnswersController.reverse();
-                        _disabled = true;
+                        DatabaseManager.deleteDocumentInCollection("lessons/" + widget.lessonId + "/questions", widget.questionId).then((_){
+                          DatabaseManager.updateLesson(widget.lessonId, "-1", 'lessonsLength', '', '');
+                          _deleteHeightController.reverse();
+                          _boxColorController.forward();
+                          _expandAnswersController.reverse();
+                          _disabled = true;
+                          });
                       }
                     },
                     child: Container(
@@ -392,14 +396,14 @@ class _QuestionState extends State<Question>
           margin: EdgeInsets.only(right: 4),
           child: Icon(
             FontAwesomeIcons.solidCircle,
-            color: Theme.of(context).primaryColor,
+            color: Colors.white,
             size: 12,
           ),
         ),
         Text(
           ' minuto',
           style: TextStyle(
-            color: Theme.of(context).primaryColor,
+            color: Colors.white,
           ),
         ),
       ],
@@ -410,14 +414,14 @@ class _QuestionState extends State<Question>
           margin: EdgeInsets.only(right: 4),
           child: Icon(
             FontAwesomeIcons.solidSquare,
-            color: Theme.of(context).primaryColor,
+            color: Colors.white,
             size: 12,
           ),
         ),
         Text(
           ' diapositiva',
           style: TextStyle(
-            color: Theme.of(context).primaryColor,
+            color: Colors.white,
           ),
         ),
       ],
@@ -431,67 +435,73 @@ class _QuestionState extends State<Question>
       }
     });
 
-    // if(widget.isVideo && YouTubeVideo.videoSeekToPasser != null) YouTubeVideo.videoSeekToPasser.sender.add(widget.attachPosition);
-    // else if(Presentation.slidePasser != null) {
-    //   Presentation.slidePasser.sender.add(widget.attachPosition);
-    // }
+    if(widget.isVideo && YouTubeVideo.videoSeekToPasser != null) YouTubeVideo.videoSeekToPasser.sender.add(widget.attachment);
+    else if(Presentation.slidePasser != null) {
+      Presentation.slidePasser.sender.add(widget.attachment);
+    }
   }
 
   Widget _getAttachPosition(){
     if(!widget.mine){
-      if(widget.attachPosition != ''){
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            _getAttachIcon(),
-            Container(
-              margin: EdgeInsets.only(left: 3),
-              child: Text(
-                widget.attachPosition,
-                style: TextStyle(
-                  color: Theme.of(context).primaryColor,
+      if(widget.attachment != ''){
+        return Container(
+          margin: EdgeInsets.only(top: 4),
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).accentColor,
+            borderRadius: BorderRadius.circular(4)
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              _getAttachIcon(),
+              Container(
+                margin: EdgeInsets.only(left: 3),
+                child: Text(
+                  widget.attachment,
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       }else return Container();
     }else{
-      if(widget.attachPosition != ''){
+      if(widget.attachment != ''){
         return Row(
           children: <Widget>[
             Expanded(
               child: Container(
-                padding: EdgeInsets.symmetric(vertical: 9, horizontal: 9),
-                decoration: BoxDecoration(
-                  // color: Color.fromARGB(255, 250, 250, 250),
-                  border: Border(
-                    bottom: BorderSide(
-                      width: 4,
-                      // color: _colorFloatText.value,
-                      color: Color.fromARGB(255, 249, 249, 249)
-                    ),
+                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                child: Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).accentColor,
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        _getAttachIcon(),
-                        Container(
-                          margin: EdgeInsets.only(left: 3),
-                          child: Text(
-                            widget.attachPosition,
-                            style: TextStyle(
-                              color: Theme.of(context).primaryColor,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          _getAttachIcon(),
+                          Container(
+                            margin: EdgeInsets.only(left: 3),
+                            child: Text(
+                              widget.attachment,
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -507,18 +517,10 @@ class _QuestionState extends State<Question>
         children: <Widget>[
           Expanded(
             child: Container(
-              padding: EdgeInsets.symmetric(vertical: 9, horizontal: 9),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    width: 4,
-                    // color: _colorFloatText.value,
-                    color: Color.fromARGB(255, 249, 249, 249)
-                  ),
-                ),
-              ),
-              child: Row(
+              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
                     widget.author,
@@ -705,6 +707,7 @@ class _QuestionState extends State<Question>
                                             ChatBar.questionText = widget.text;
                                             if(InteractRoute.questionPositionController.status == AnimationStatus.dismissed || InteractRoute.questionPositionController.status == AnimationStatus.reverse){
                                               InteractRoute.questionController.add(widget.text);
+                                              InteractRoute.questionId = widget.questionId;
                                               InteractRoute.questionPositionController.forward();
                                               _expandAnswersController.forward();
                                               Question.answerPasser = _answerPasser;
@@ -780,17 +783,18 @@ class _QuestionState extends State<Question>
                 margin: EdgeInsets.only(right: 3),
                 child: Vote(
                   voted: widget.voted,
-                  votes: widget.votes,
+                  votesLength: widget.votesLength,
                   onVote: (){
                     DatabaseManager.addVoteToQuestion(widget.lessonId, Auth.uid, widget.questionId, "1");
                     InteractRoute.questions.replaceRange(widget.index, widget.index + 1, [Question(
                       lessonId: widget.lessonId,
                       questionId: widget.questionId,
+                      courseId: widget.courseId,
                       authorId: widget.authorId,
                       author: widget.author,
                       text: widget.text,
                       voted: true,
-                      votes: widget.votes + 1,
+                      votesLength: widget.votesLength + 1,
                       index: widget.index,
                       mine: widget.mine,
                       votesController: widget.votesController,
@@ -803,11 +807,12 @@ class _QuestionState extends State<Question>
                     InteractRoute.questions.replaceRange(widget.index, widget.index + 1, [Question(
                       lessonId: widget.lessonId,
                       authorId: widget.authorId,
+                      courseId: widget.courseId,
                       questionId: widget.questionId,
                       author: widget.author,
                       text: widget.text,
                       voted: false,
-                      votes: widget.votes - 1,
+                      votesLength: widget.votesLength - 1,
                       index: widget.index,
                       mine: widget.mine,
                       votesController: widget.votesController,

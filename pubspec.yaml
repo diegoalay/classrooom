@@ -13,6 +13,7 @@ description: A new Flutter project.
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 version: 1.0.0+1
 
+
 environment:
   sdk: ">=2.1.0 <3.0.0"
 
@@ -47,7 +48,8 @@ dependencies:
   flutter_spinkit: ^4.0.0  
   vibration: ^1.1.0
   rxdart: ^0.22.0
-
+  #dependencies API calls
+  http: ^0.12.0+1
 dev_dependencies:
   flutter_launcher_icons: "^0.7.0"
   flutter_test:

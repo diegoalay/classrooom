@@ -14,7 +14,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LessonsRoute extends StatefulWidget{
   final String author, name, courseId, authorId;
-  final int participants;
+  final int usersLength;
   final bool owner;
 
   const LessonsRoute({
@@ -22,7 +22,7 @@ class LessonsRoute extends StatefulWidget{
     @required this.author,
     @required this.name,
     @required this.courseId,
-    this.participants: 1,
+    this.usersLength: 1,
     this.owner: false,
   });
 
@@ -34,7 +34,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
   ScrollController _scrollController;
   AnimationController _qrHeightController;
   Animation<Offset> _qrOffsetFloat;
-  String _participants, _name;
+  String _usersLength, _name;
   bool _disabled;
 
   List<Lesson> _lessons;
@@ -61,110 +61,95 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
     );
 
     _lessonPasser = Nav.lessonPasser;
-    _participants = '${widget.participants}';
+    _usersLength = '${widget.usersLength}';
     _name = '${widget.name}';
     _scrollController = ScrollController();
 
     _lessons = List<Lesson>();
-    // DatabaseManager.getLessonsPerCourse(widget.courseId).then(
-    //   (List<String> ls) => setState(() {
-    //     List<String> _lessonsListString = List<String>();
-    //     _lessonsListString = List<String>.from(ls);
-    //     DatabaseManager.getLessonsPerCourseByList(_lessonsListString, Auth.uid, widget.courseId).then(
-    //       (List<Lesson> lc) => setState(() {
-    //         for(var lesson in lc){
-    //           lesson.authorId = widget.authorId;
-    //           _lessons.add(lesson);
-    //         }
-    //       })
-    //     );         
-    //   })
-    // );
-
 
     Firestore.instance.collection("courses").document(widget.courseId).snapshots().listen((snapshot){
       var value = snapshot.data;
-      if(value == null) {
-        if(this.mounted) setState(() {
-          _disabled = true;
-        });
-      }else{
+      if(value != null) {
         if(this.mounted){
           setState(() {
             _name = value['name'];
-            _participants = value['participants'].toString();
+            _usersLength = value['usersLength'].toString();
           });
         } 
       }
     });
-     
-    // Firestore.instance.collection("lessonsPerCourse").document(widget.courseId).snapshots().listen((snapshot){
-    //   if(snapshot.data != null){
-    //     if(this.mounted) setState(() {
-    //       List<String> lista = new List<String>();
-    //       if(_lessons.isEmpty) lista = List<String>.from(snapshot.data['lessons']);
-    //       else{
-    //         lista.add((snapshot.data['lessons']).last);
-    //       }
-    //       DatabaseManager.getLessonsPerCourseByList(lista, Auth.uid, widget.courseId).then((List<Lesson> lc){
-    //         if(this.mounted){
-    //           setState(() {
-    //             for(var lesson in lc){
-    //               lesson.authorId = widget.authorId;
-    //               Map text = {
-    //                 'lessonId': lesson.lessonId,
-    //                 'name' : lesson.name,
-    //                 'date' : lesson.date,
-    //                 'comments': lesson.comments,
-    //                 'owner': widget.owner,
-    //                 'authorId': widget.authorId,
-    //                 'courseId': widget.courseId,
-    //                 'fileType': lesson.fileType,
-    //                 'fileExists': lesson.fileExists,
-    //                 'filePath': lesson.filePath,                    
-    //                 'description': lesson.description,
-    //               };
-    //               String textLesson = json.encode(text); 
-    //               _lessons.add(lesson);
-    //             }
-    //           });
-    //         }
-    //       });    
-    //     }); 
-    //   }   
-    // });
 
-    Firestore.instance.collection("lessons").where('courseId', isEqualTo: widget.courseId).snapshots().listen((snapshot){
-      List<DocumentChange> docs = snapshot.documentChanges;
-      if(docs != null){
-        for(var doc in docs){
-          print("DOC: ${doc.type}");  
-          print("DOC: ${doc.document.data}");  
-          if(doc.type == DocumentChangeType.added){
-            if(this.mounted){
-              setState(() {
-                _lessons.add(Lesson(
-                    lessonId: doc.document.documentID,
-                    name : doc.document['name'],
-                    date : doc.document['date'],
-                    comments: doc.document['comments'],
-                    owner: widget.owner,
-                    authorId: widget.authorId,
-                    courseId: widget.courseId,
-                    fileType: doc.document['fileType'],
-                    fileExists: doc.document['fileExists'],
-                    filePath: doc.document['filePath'],                    
-                    description: doc.document['description']
-                  )
-                );
-              });
-            }            
-          }else if(doc.type == DocumentChangeType.removed){
-            
+    if(widget.authorId == Auth.uid){
+      Firestore.instance.collection("lessons").where('courseId', isEqualTo: widget.courseId).snapshots().listen((snapshot){
+        List<DocumentChange> docs = snapshot.documentChanges;
+        if(docs != null){
+          for(var doc in docs){
+            if(doc.type == DocumentChangeType.added){
+              if(this.mounted){
+                setState(() {
+                  _lessons.add(Lesson(
+                      key: Key('lesson-${doc.document.documentID}'),
+                      lessonId: doc.document.documentID,
+                      name : doc.document['name'],
+                      date : doc.document['date'],
+                      lessonsLength: doc.document['lessonsLength'],
+                      owner: widget.owner,
+                      authorId: widget.authorId,
+                      courseId: widget.courseId,
+                      fileType: doc.document['fileType'],
+                      fileExists: doc.document['fileExists'],
+                      status: doc.document['status'],
+                      filePath: doc.document['filePath'],                    
+                      description: doc.document['description'],
+                      onLessonDelete: _handleLessonDelete,
+                    )
+                  );
+                });
+              }      
+            }else if(doc.type == DocumentChangeType.removed){
+              print('change');      
+            }else if(doc.type == DocumentChangeType.removed){
+              print('delete');
+            }
           }
         }
-      }
-    });
+      });      
+    } else {
+      Firestore.instance.collection("lessons").where('courseId', isEqualTo: widget.courseId).where('status', isEqualTo: true).snapshots().listen((snapshot){
+        List<DocumentChange> docs = snapshot.documentChanges;
+        if(docs != null){
+          for(var doc in docs){
+            if(doc.type == DocumentChangeType.added){
+              if(this.mounted){
+                setState(() {
+                  _lessons.add(Lesson(
+                      key: Key('lesson-${doc.document.documentID}'),
+                      lessonId: doc.document.documentID,
+                      name : doc.document['name'],
+                      date : doc.document['date'],
+                      lessonsLength: doc.document['lessonsLength'],
+                      owner: widget.owner,
+                      authorId: widget.authorId,
+                      courseId: widget.courseId,
+                      fileType: doc.document['fileType'],
+                      fileExists: doc.document['fileExists'],
+                      status: doc.document['status'],
+                      filePath: doc.document['filePath'],                    
+                      description: doc.document['description'],
+                      onLessonDelete: _handleLessonDelete,
+                    )
+                  );
+                });
+              }      
+            }else if(doc.type == DocumentChangeType.removed){
+              print('change');      
+            }else if(doc.type == DocumentChangeType.removed){
+              print('delete');
+            }
+          }
+        }
+      });
+    }
 
     _lessonPasser.receiver.listen((newLesson){
       if(newLesson != null){
@@ -173,15 +158,18 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
           setState(() {
             _lessons.add(
               Lesson(
+                key: Key('lesson-${jsonLesson['lessonId']}'),
                 fileExists: jsonLesson['fileExists'],
+                status: jsonLesson['status'],
                 lessonId: jsonLesson['lessonId'],
                 courseId: jsonLesson['courseId'],
                 name: jsonLesson['name'],
                 date: jsonLesson['date'],
                 description: jsonLesson['description'],
-                comments: jsonLesson['comments'],
+                lessonsLength: jsonLesson['lessonsLength'],
                 owner: widget.owner,
                 authorId: widget.authorId,
+                onLessonDelete: _handleLessonDelete,
               )
             );
           });
@@ -195,6 +183,13 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
         }
       }
     });    
+  }
+
+  void _handleLessonDelete(String lessonId) {
+    print('ESTO SE EJECUTA');
+    this.setState(() {
+      _lessons = _lessons.where((lesson) => lesson.lessonId != lessonId).toList();
+    });
   }
 
   @override
@@ -271,7 +266,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
                         Container(
                           padding: EdgeInsets.only(top: 2),
                           child: Text(
-                            _participants,
+                            _usersLength,
                             style: TextStyle(
                               color: Theme.of(context).accentColor,
                               fontWeight: FontWeight.bold,

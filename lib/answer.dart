@@ -6,7 +6,7 @@ import 'package:classroom/auth.dart';
 class Answer extends StatefulWidget{
   final String author, text, questionId, answerId, authorId, lessonId, questionText;
   bool voted, mine, owner;
-  final int votes;
+  final int votesLength;
 
   Answer({
     @required this.questionId,
@@ -19,7 +19,7 @@ class Answer extends StatefulWidget{
     this.voted: false,
     this.mine: false,
     this.owner: false,
-    this.votes: 1,
+    this.votesLength: 1,
   });
 
   _AnswerState createState() => _AnswerState();
@@ -53,7 +53,7 @@ class _AnswerState extends State<Answer>{
           child: Container(
             child: Vote(
               voted: widget.voted,
-              votes: widget.votes,
+              votesLength: widget.votesLength,
               showVotes: false,
               small: true,
               onVote: (){

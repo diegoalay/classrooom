@@ -9,6 +9,7 @@ import 'package:classroom/auth.dart';
 // import 'package:qrcode_reader/qrcode_reader.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:classroom/notify.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CoursesRoute extends StatefulWidget{
   static WidgetPasser activateQRPasser = WidgetPasser();
@@ -23,6 +24,7 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
   WidgetPasser _coursePasser;
   List<Course> _coursesList;
   String _contentQR;
+  List<String> _coursesIdList;
 
   void _scanQR() async{
     try{
@@ -31,51 +33,44 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
       print(e);
     }
     if(_contentQR != null){
-      DatabaseManager.searchInArray("coursesPerUser", Auth.uid, "courses", _contentQR).then((valid){
-        if(!valid){
-          DatabaseManager.addCourseByAccessCode(_contentQR,Auth.uid).then((dynamic text){
-            if(text == null){  
-              setState(() {
-                Notify.show(
-                  context: context,
-                  text: 'El curso no existe.',
-                  actionText: 'Ok',
-                  backgroundColor: Colors.red[200],
-                  textColor: Colors.black,
-                  actionColor: Colors.black,
-                  onPressed: (){
-                    
-                  }
-                );                                
-              });            
-            }else{
-              String textCourse = json.encode(text);
-              print(textCourse);
-              _coursePasser.sender.add(textCourse);                              
-            }              
-          }); 
-        }else{
-          Notify.show(
-            context: context,
-            text: 'El curso ya ha sido agregado.',
-            actionText: 'Ok',
-            backgroundColor: Colors.red[200],
-            textColor: Colors.black,
-            actionColor: Colors.black,
-            onPressed: (){
-              
-            } 
-          );                            
+      var path = 'coursesPerUser/${Auth.uid}';
+      var data = {
+          'obj': {
+              'courseId': _contentQR,
+          },
+          'user': {
+              'id': Auth.uid,
+              'email': Auth.getEmail(),
+              'name': Auth.getName(),
+          },
+      };
+      DatabaseManager.requestAdd(path, data, 'addCourseByAccessCode').then((response){
+        if(response['status'] == 1){
+          dynamic course = response['course'];
+          var text = {
+            'id': course['id'],
+            'usersLength': course['usersLength'] + 1,
+            'lessons': course['lessons'],
+            'name': course['name'],
+            'author': course['author'],
+            'authorId': course['authorId'],
+            'owner': false
+          };
+          String textCourse = json.encode(text);
+          _coursePasser.sender.add(textCourse);     
+        } else {
+          print(response);
         }
-      });                 
+      });                                           
     }
   }
+
 
   void getCourses(){
     DatabaseManager.getCoursesPerUser().then(
       (List<String> ls) => setState(() {
-        List<String> _coursesListString = ls;
-        DatabaseManager.getCoursesPerUserByList(_coursesListString, Auth.uid).then(
+        _coursesIdList = ls;
+        DatabaseManager.getCoursesPerUserByList(_coursesIdList, Auth.uid).then(
           (List<Course> lc) => setState(() {
             _coursesList = lc;
           })
@@ -87,18 +82,32 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
   @override
   void initState() {
     super.initState();
+
+    Firestore.instance.collection('coursesPerUser').document(Auth.uid).snapshots().listen((snapshot){
+      if(snapshot.exists) {
+        var value = snapshot.data;
+        List<String> courseList = List<String>.from(value['courses']);
+        DatabaseManager.getCoursesPerUserByList(courseList, Auth.uid).then(
+          (List<Course> lc) {
+            if (this.mounted) {
+              setState(() {
+                _coursesList = lc;
+              });
+            }
+          } 
+        );
+      }         
+    });
+
     _coursesList = List<Course>();
     _coursePasser = Nav.coursePasser;
-    if(_coursesList.isEmpty){
-      getCourses();
-    }
 
     CoursesRoute.activateQRPasser.receiver.listen((value){
       if(value == 'QR'){
         _scanQR();
       }
     });
-
+    
     _coursePasser.receiver.listen((newCourse){
       if(newCourse != null){
         Map jsonCourse = json.decode(newCourse);
@@ -107,11 +116,11 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
             _coursesList.add(
               Course(
                 courseId: jsonCourse['id'],
-                participants: jsonCourse['participants'],
+                usersLength: jsonCourse['usersLength'],
                 name: jsonCourse['name'],
                 author: jsonCourse['author'],
                 authorId: jsonCourse['authorId'],
-                lessons: jsonCourse['lessons'],
+                lessonsLength: jsonCourse['lessonsLength'],
                 owner: jsonCourse['owner'],
               )
             );

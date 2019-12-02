@@ -22,10 +22,11 @@ class ChatBar extends StatefulWidget{
   static String createdById, createdByName, questionText;
 
   final bool owner;
-  final String lessonId, questionToAnswer;
+  final String lessonId, questionToAnswer, courseId;
   
   const ChatBar({
     @required this.lessonId,
+    @required this.courseId,
     this.owner: false,
     this.questionToAnswer: '',
   });
@@ -93,10 +94,11 @@ class _ChatBarState extends State<ChatBar> with SingleTickerProviderStateMixin{
       String author = Auth.getName();
       if(ChatBar.mode == ChatBarMode.QUESTION){
         print("atach: ${widget.questionToAnswer}");
-        DatabaseManager.addQuestions(author, authorId, widget.lessonId, val, day, month, year, hours, minutes).then((id){});
+        DatabaseManager.addQuestions(author, authorId, widget.courseId, widget.lessonId, val, day, month, year, hours, minutes).then((id){});
       }else if(ChatBar.mode == ChatBarMode.ANSWER){
         String questionId = Question.globalQuestionId;
-        DatabaseManager.addAnswers(questionId, author, authorId, widget.lessonId, val, day, month, year, hours, minutes, ChatBar.createdById, ChatBar.createdByName, ChatBar.questionText).then((id){
+        print(InteractRoute.questionId);
+        DatabaseManager.addAnswers(questionId, author, authorId, widget.courseId, widget.lessonId, InteractRoute.questionId, val, day, month, year, hours, minutes, ChatBar.createdById, ChatBar.createdByName, ChatBar.questionText).then((id){
         //   Map text = {
         //     'answerId': id,
         //     'text': val,
@@ -109,18 +111,19 @@ class _ChatBarState extends State<ChatBar> with SingleTickerProviderStateMixin{
         //     'year': year,
         //     'hours': hours,
         //     'minutes': minutes,
-        //     'usersVote': []
+        //     'votes': []
         //   };
         //   String textAnswer = json.encode(text);
         //   Question.answerPasser.sender.add(textAnswer);
         //   if(widget.owner) Question.answeredPasser.sender.add('1');
           InteractRoute.questionPositionController.reverse();
+          InteractRoute.questionOpacityController.reverse();
           ChatBar.labelPasser.sender.add('Escriba una pregunta');
           ChatBar.mode = ChatBarMode.QUESTION;          
         });        
       }else if(ChatBar.mode == ChatBarMode.QUESTION_WITH_POSITION){
         print("atach: ${widget.questionToAnswer}");
-        DatabaseManager.addQuestions(author, authorId, widget.lessonId, val, day, month, year, hours, minutes, attachPosition: widget.questionToAnswer).then((id){ 
+        DatabaseManager.addQuestions(author, authorId, widget.courseId, widget.lessonId, val, day, month, year, hours, minutes, attachment: widget.questionToAnswer).then((id){ 
           InteractRoute.questionPositionController.reverse();      
         });
       }
