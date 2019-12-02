@@ -88,9 +88,13 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
         var value = snapshot.data;
         List<String> courseList = List<String>.from(value['courses']);
         DatabaseManager.getCoursesPerUserByList(courseList, Auth.uid).then(
-          (List<Course> lc) => setState(() {
-            _coursesList = lc;
-          })
+          (List<Course> lc) {
+            if (this.mounted) {
+              setState(() {
+                _coursesList = lc;
+              });
+            }
+          } 
         );
       }         
     });

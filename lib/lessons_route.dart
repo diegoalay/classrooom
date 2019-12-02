@@ -98,9 +98,10 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
                       courseId: widget.courseId,
                       fileType: doc.document['fileType'],
                       fileExists: doc.document['fileExists'],
+                      status: doc.document['status'],
                       filePath: doc.document['filePath'],                    
                       description: doc.document['description'],
-                    onLessonDelete: _handleLessonDelete,
+                      onLessonDelete: _handleLessonDelete,
                     )
                   );
                 });
@@ -122,6 +123,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
               if(this.mounted){
                 setState(() {
                   _lessons.add(Lesson(
+                      key: Key('lesson-${doc.document.documentID}'),
                       lessonId: doc.document.documentID,
                       name : doc.document['name'],
                       date : doc.document['date'],
@@ -131,8 +133,10 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
                       courseId: widget.courseId,
                       fileType: doc.document['fileType'],
                       fileExists: doc.document['fileExists'],
+                      status: doc.document['status'],
                       filePath: doc.document['filePath'],                    
-                      description: doc.document['description']
+                      description: doc.document['description'],
+                      onLessonDelete: _handleLessonDelete,
                     )
                   );
                 });
@@ -156,6 +160,7 @@ class _LessonsRouteState extends State<LessonsRoute> with SingleTickerProviderSt
               Lesson(
                 key: Key('lesson-${jsonLesson['lessonId']}'),
                 fileExists: jsonLesson['fileExists'],
+                status: jsonLesson['status'],
                 lessonId: jsonLesson['lessonId'],
                 courseId: jsonLesson['courseId'],
                 name: jsonLesson['name'],

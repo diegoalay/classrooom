@@ -13,7 +13,7 @@ class Lesson extends StatefulWidget{
   final String name, description, lessonId, date, courseId, fileType, filePath;
   String authorId;
   int lessonsLength;
-  final bool owner, fileExists;
+  final bool owner, fileExists, status;
   final Function onLessonDelete;
   
 
@@ -24,6 +24,7 @@ class Lesson extends StatefulWidget{
     @required this.authorId,
     @required this.name,
     @required this.fileExists,
+    @required this.status,
     @required this.onLessonDelete,
     this.filePath: '',
     this.fileType: 'pdf',
@@ -42,7 +43,7 @@ class _LessonState extends State<Lesson> with TickerProviderStateMixin, Automati
   String _date, _description;
   String _lessonsLength, _name;
   Animation<Color> _deleteBackgroundColorFloat, _deleteTextColorFloat;
-  bool _disabled;
+  bool _disabled, _status;
   WidgetPasser _addBarModePasser;
 
   @override
@@ -51,6 +52,8 @@ class _LessonState extends State<Lesson> with TickerProviderStateMixin, Automati
   @override
   void initState() {
     String day = widget.date;
+
+    _status = widget.status;
 
     _lessonsLength = '${widget.lessonsLength}';
 
@@ -103,10 +106,13 @@ class _LessonState extends State<Lesson> with TickerProviderStateMixin, Automati
               _description = value['description'];
               _name = value['name'];
               _date = value['date'];
-            } else if (value['status'] == false && value['authorId'] != Auth.uid){
+            } else if (value['authorId'] != Auth.uid) {
               _boxResizeOpacityController.reverse().then((_) {
                 widget.onLessonDelete(widget.lessonId);
               });
+            } else {
+              _boxResizeOpacityController.animateTo(0.5);
+              _status = value['status'];
             }
           });
         } 
@@ -248,81 +254,109 @@ class _LessonState extends State<Lesson> with TickerProviderStateMixin, Automati
                   ),
                 ),
                 Positioned(
-                        top: 0,
-                        bottom: 0,
-                        right: 0,
-                        child: Tooltip(
-                          message: 'Acceder',
-                          child: GestureDetector(
-                            onTap: (){
-                              if(!_disabled){
-                                Vibration.vibrate(duration: 20);
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (BuildContext context) {
-                                    return Nav(
-                                      addBarModePasser: _addBarModePasser,
-                                      elevation: 0,
-                                      color: Colors.transparent,
-                                      actionsColor: Theme.of(context).accentColor,
-                                      titleColor: Theme.of(context).accentColor,
-                                      addBarActive: true,
-                                      drawerActive: false,
-                                      notificationsActive: false,
-                                      section: 'interact',
-                                      title: _name,
-                                      owner: widget.owner,
-                                      courseId: widget.courseId,
-                                      lessonId: widget.lessonId,
-                                      body: InteractRoute(
-                                        addBarModePasser: _addBarModePasser,
-                                        authorId: widget.authorId,
-                                        lessonId: widget.lessonId,
-                                        courseId: widget.courseId,
-                                        owner: widget.owner,
-                                      ),
-                                    ); 
-                                  })
-                                );
-                              }else{
-                                Notify.show(
-                                  context: context,
-                                  text: 'La lección $_name ya no se encuentra disponible.',
-                                  actionText: 'Ok',
-                                  backgroundColor: Theme.of(context).accentColor,
-                                  textColor: Colors.white,
-                                  actionColor: Colors.white,
-                                  onPressed: (){
-                                    
-                                  }
-                                ); 
-                              }
-                            },
+                  top: 0,
+                  bottom: 0,
+                  right: 0,
+                  child: Tooltip(
+                    message: 'Acceder',
+                    child: GestureDetector(
+                      onTap: (){
+                        if(!_disabled){
+                          Vibration.vibrate(duration: 20);
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (BuildContext context) {
+                              return Nav(
+                                addBarModePasser: _addBarModePasser,
+                                elevation: 0,
+                                color: Colors.transparent,
+                                actionsColor: Theme.of(context).accentColor,
+                                titleColor: Theme.of(context).accentColor,
+                                addBarActive: true,
+                                drawerActive: false,
+                                notificationsActive: false,
+                                section: 'interact',
+                                title: _name,
+                                owner: widget.owner,
+                                courseId: widget.courseId,
+                                lessonId: widget.lessonId,
+                                body: InteractRoute(
+                                  addBarModePasser: _addBarModePasser,
+                                  authorId: widget.authorId,
+                                  lessonId: widget.lessonId,
+                                  courseId: widget.courseId,
+                                  owner: widget.owner,
+                                ),
+                              ); 
+                            })
+                          );
+                        }else{
+                          Notify.show(
+                            context: context,
+                            text: 'La lección $_name ya no se encuentra disponible.',
+                            actionText: 'Ok',
+                            backgroundColor: Theme.of(context).accentColor,
+                            textColor: Colors.white,
+                            actionColor: Colors.white,
+                            onPressed: (){
+                              
+                            }
+                          ); 
+                        }
+                      },
+                      child: Container(
+                        width: 40,
+                        decoration: BoxDecoration(
+                          color: _deleteTextColorFloat.value,
+                          borderRadius: BorderRadius.only(
+                            topRight: Radius.circular(3),
+                            bottomRight: Radius.circular(3),
+                          ),
+                        ),
+                        child: Container(
+                          margin: EdgeInsets.only(right: 0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Icon(
+                                FontAwesomeIcons.externalLinkSquareAlt,
+                                color: Colors.white,
+                                size: 17,
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                !_status ? Positioned.fill(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Container(
+                            padding: EdgeInsets.all(12),
+                            margin: EdgeInsets.only(right: 48),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).accentColor,
+                              shape: BoxShape.circle,
+                            ),
                             child: Container(
-                              width: 40,
-                              decoration: BoxDecoration(
-                                color: _deleteTextColorFloat.value,
-                                borderRadius: BorderRadius.only(
-                                  topRight: Radius.circular(3),
-                                  bottomRight: Radius.circular(3),
-                                ),
-                              ),
-                              child: Container(
-                                margin: EdgeInsets.only(right: 0),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    Icon(
-                                      FontAwesomeIcons.externalLinkSquareAlt,
-                                      color: Colors.white,
-                                      size: 17,
-                                    )
-                                  ],
-                                ),
+                              margin: EdgeInsets.only(right: 4, bottom: 2),
+                              child: Icon(
+                                FontAwesomeIcons.solidEyeSlash,
+                                size: 16,
+                                color: Theme.of(context).cardColor,
                               ),
                             ),
                           ),
-                        ),
-                      )
+                        ],
+                      ),
+                    ],
+                  ),
+                ) : Container(),
               ],
             ),
           );
