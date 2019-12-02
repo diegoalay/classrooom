@@ -156,7 +156,9 @@ class DatabaseManager{
   }
 
   static Future<void> deleteDocumentInCollection(String collection,document) async{
-    await Firestore.instance.collection(collection).document(document).delete();
+    print(collection);
+    print(document);
+    Firestore.instance.collection(collection).document(document).delete();
   }
 
   static Future<void> deleteFromArray(collection,document,field,val) async{

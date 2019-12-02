@@ -98,9 +98,6 @@ class _LessonState extends State<Lesson> with TickerProviderStateMixin, Automati
         var value = snapshot.data;
         if(this.mounted){
           setState(() {
-            print(widget.authorId);
-            print(value['authorId']);
-            print(value['status']);
             if(value['status']) {
               _lessonsLength = value['lessonsLength'].toString();
               _description = value['description'];

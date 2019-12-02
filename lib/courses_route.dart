@@ -97,9 +97,6 @@ class _CoursesRouteState extends State<CoursesRoute> with TickerProviderStateMix
 
     _coursesList = List<Course>();
     _coursePasser = Nav.coursePasser;
-    if(_coursesList.isEmpty){
-      // getCourses();
-    }
 
     CoursesRoute.activateQRPasser.receiver.listen((value){
       if(value == 'QR'){

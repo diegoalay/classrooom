@@ -350,11 +350,13 @@ class _QuestionState extends State<Question>
                   child: GestureDetector(
                     onTap: (){
                       if(!_disabled){
-                        DatabaseManager.deleteDocumentInCollection("lessons/" + widget.lessonId + "/questions/", widget.questionId);
-                        _deleteHeightController.reverse();
-                        _boxColorController.forward();
-                        _expandAnswersController.reverse();
-                        _disabled = true;
+                        DatabaseManager.deleteDocumentInCollection("lessons/" + widget.lessonId + "/questions", widget.questionId).then((_){
+                          DatabaseManager.updateLesson(widget.lessonId, "-1", 'lessonsLength', '', '');
+                          _deleteHeightController.reverse();
+                          _boxColorController.forward();
+                          _expandAnswersController.reverse();
+                          _disabled = true;
+                          });
                       }
                     },
                     child: Container(
