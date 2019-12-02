@@ -535,6 +535,30 @@ class DatabaseManager{
     return answersList;
   } 
 
+  static Future<dynamic> requestChange(String path, dynamic data, String route) async {
+    // set up POST request arguments
+    try {
+      String url = 'http://' + serverIp + '/' + route;
+      Map<String, String> headers = {"Content-type": "application/json"};
+      Map<dynamic,dynamic> obj = {
+        'path': path,
+        'data': data,
+      };
+
+      var jsonObj = jsonEncode(obj);
+      // make POST request
+      var response = await http.post(url, headers: headers, body: jsonObj);
+
+      // check the status code for the result
+      int statusCode = response.statusCode;
+      String body = response.body;
+      return true;
+    }catch (e) {
+      print('error $e');
+      return false;
+    }    
+  }
+
   static Future<dynamic> requestAdd(String path, dynamic data, String route) async {
     // set up POST request arguments
     try {

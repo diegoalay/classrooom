@@ -664,13 +664,17 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
                 size: 20,
               ),
               tooltip: 'Salir del curso',
-              onPressed: (){
-                  Course.deactivateListener.sender.add('deactivate');    
-                  DatabaseManager.deleteFromArray("coursesPerUser",Auth.uid,"courses",widget.courseId).then((_){
-                  DatabaseManager.deleteFromArray("usersPerCourse", widget.courseId,"users", Auth.uid);
-                  DatabaseManager.updateCourse(widget.courseId, "-1", "usersLength");
-                });
-                Navigator.of(context).pop();
+              onPressed: (){   
+                var data = {
+                    'courseId': widget.courseId,
+                    'uid': Auth.uid,
+                };
+                DatabaseManager.requestChange('', data, 'deleteAssociatedCourse').then((response){
+                  if(response){
+                    Course.deactivateListener.sender.add('deactivate'); 
+                    Navigator.of(context).pop();
+                  }
+                }); 
               },
             ),
           )
