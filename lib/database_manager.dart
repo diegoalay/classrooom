@@ -18,7 +18,7 @@ class DatabaseManager{
   static StorageReference storageRef = FirebaseStorage.instance.ref();
   static Directory tempDir = Directory.systemTemp;
   static FirebaseMessaging _fcm = FirebaseMessaging();
-  static String serverIp = 'dhca-mobile-classroom.appspot.com';
+  static String serverIp;
   static FirebaseMessaging getFcm(){
     return _fcm;
   }
@@ -35,6 +35,18 @@ class DatabaseManager{
       });
       print(ref.documentID);
     }
+  }
+
+  static connectApi() {
+    Firestore.instance.collection('services').document('API').get().then((snapshot){
+          Map<dynamic,dynamic> services = snapshot.data;
+          if(services != null){
+            print(services);
+            serverIp = services['ip'];
+          } else {
+            serverIp = 'dhca-mobile-classroom.appspot.com';
+          }
+    });
   }
 
   static addCoursesPerUser(String uid, String course){ 
@@ -395,8 +407,18 @@ class DatabaseManager{
         case "votes": {
           DocumentSnapshot snapshot = await transaction.get(reference); 
           List<String> list = List<String>.from(snapshot.data[column]);
-          list.add('$param-$questionIndex-$answerIndex');    
-          transaction.update(reference, <String, dynamic>{column: list});            
+          bool alreadyAnswered = false;
+          list.forEach((vote){
+            if(vote.split("-")[0] == Auth.uid){
+              if(int.parse(vote.split("-")[1]) == questionIndex) {
+                alreadyAnswered = true;
+              } 
+            }
+          });
+          if(!alreadyAnswered) {
+            list.add('$param-$questionIndex-$answerIndex');    
+            transaction.update(reference, <String, dynamic>{column: list});            
+          }
           break;
         }        
         default: {

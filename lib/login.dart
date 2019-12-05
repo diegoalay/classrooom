@@ -1,3 +1,4 @@
+import 'package:classroom/database_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:classroom/stateful_textfield.dart';
 import 'package:classroom/stateful_button.dart';
@@ -149,6 +150,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin{
             }else if(user == "0"){
               showNotification('No se ha confirmado la dirección de correo, porfavor verifique su bandeja de entrada.');   
             }else{
+              DatabaseManager.connectApi();
               prefs.setInt('logged', 1);
               prefs.setString('email', email);
               prefs.setString('password', password);

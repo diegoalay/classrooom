@@ -1,42 +1,42 @@
 {
   "project_info": {
-    "project_number": "930144417947",
-    "firebase_url": "https://dhca-mobile-classroom.firebaseio.com",
-    "project_id": "dhca-mobile-classroom",
-    "storage_bucket": "dhca-mobile-classroom.appspot.com"
+    "project_number": "635222715994",
+    "firebase_url": "https://classroom-sp-e20fd.firebaseio.com",
+    "project_id": "classroom-sp-e20fd",
+    "storage_bucket": "classroom-sp-e20fd.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:930144417947:android:0e847dd3cd7695f9",
+        "mobilesdk_app_id": "1:635222715994:android:b7c8a2b0c3c6efd706b263",
         "android_client_info": {
           "package_name": "dhca.mobile.classroom"
         }
       },
       "oauth_client": [
         {
-          "client_id": "930144417947-s32pjsht8t2r95o00qof9h6llj3rio0j.apps.googleusercontent.com",
+          "client_id": "635222715994-4b4ils45rejm1228fsbqodortpsmemcf.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "dhca.mobile.classroom",
-            "certificate_hash": "8bc4a7b0db878261d1860e3b615a9b86f178ff4e"
+            "certificate_hash": "863987e48dfee79c7c883ff9b4a8be35456882d1"
           }
         },
         {
-          "client_id": "930144417947-lmllm06hotesqdui2toim79nooq7iehk.apps.googleusercontent.com",
+          "client_id": "635222715994-cnpuiqja8c6ktc8ob84cc0h55co9lutk.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCvVhHwtdTyVDbv5a1vNH92y2BRqCZfZn8"
+          "current_key": "AIzaSyAw0iXzcFckOOlkXF0P4fg41gRCn-tHP3s"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "930144417947-lmllm06hotesqdui2toim79nooq7iehk.apps.googleusercontent.com",
+              "client_id": "635222715994-cnpuiqja8c6ktc8ob84cc0h55co9lutk.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
