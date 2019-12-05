@@ -183,10 +183,18 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
         ],
       );
     }else{
-      _uploadPresentation = Text(
-        'No hay archivo cargado.',
-        style: TextStyle(
-          color: Colors.grey,
+      _uploadPresentation = Container(
+        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        margin: EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Color.fromARGB(255, 0, 11, 43),
+          borderRadius: BorderRadius.circular(100),
+        ),
+        child: Text(
+          'No hay archivo disponible.',
+          style: TextStyle(
+            color: Colors.white,
+          ),
         ),
       ); 
     }
@@ -515,7 +523,7 @@ class _InteractRouteState extends State<InteractRoute> with TickerProviderStateM
           padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           margin: EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: Theme.of(context).accentColor,
+            color: Color.fromARGB(255, 0, 11, 43),
             borderRadius: BorderRadius.circular(100),
           ),
           child: Text(

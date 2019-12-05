@@ -82,7 +82,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
   Color _titleColor, _color, _actionsColor;
   FocusNode _focusAddBarNodeLessons, _focusAddBarNodeCourses;
   SharedPreferences prefs;
-  bool _resizeScaffold, _showInteractQuestions;
+  bool _resizeScaffold, _showInteractQuestions, _sortedInteract;
   DateTime selectedDate = DateTime.now();
   Map<dynamic,dynamic> _questionnaireData;
   //WidgetPasser courseBloc = WidgetPasser();
@@ -100,6 +100,7 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
 
     _initSharedPreferences();
     _showInteractQuestions = false;
+    _sortedInteract = false;
     _questionnaireData = null;
     Nav.sectionId = widget.section;
     Nav.popPasser.receiver.listen((newPop) {
@@ -686,11 +687,14 @@ class _NavState extends State<Nav> with TickerProviderStateMixin{
           margin: EdgeInsets.only(right: 9),
           child: IconButton(
             icon: Icon(
-              FontAwesomeIcons.cube,
+              _sortedInteract ? FontAwesomeIcons.cubes : FontAwesomeIcons.cube,
               size: 20,
             ),
             tooltip: 'Ordenar preguntas por diapositiva',
             onPressed: (){
+                this.setState(() {
+                  _sortedInteract = !_sortedInteract;
+                });
                 InteractRoute.setQuestionsSort.sender.add('1');
             },
           ),
